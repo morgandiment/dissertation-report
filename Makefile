@@ -56,6 +56,7 @@ else
 endif
 
 LATEXMK = latexmk
+LATEXMK_OPTS ?= -f
 
 .PHONY: clean distclean wordcount check help hacker-font main plan
 
@@ -123,14 +124,14 @@ hacker-font:
 
 $(MAIN).pdf: $(MAIN).tex qdissertation.cls bibliography.bib acronyms.tex \
 	C*/chapter*.tex A*/appendix*.tex
-	$(LATEXMK) $(LATEXMK_ENGINE) $(LATEXMK_CMD) $(MAIN)
+	$(LATEXMK) $(LATEXMK_OPTS) $(LATEXMK_ENGINE) $(LATEXMK_CMD) $(MAIN)
 	-makeglossaries $(MAIN)
-	$(LATEXMK) $(LATEXMK_ENGINE) $(LATEXMK_CMD) $(MAIN)
+	$(LATEXMK) $(LATEXMK_OPTS) -g $(LATEXMK_ENGINE) $(LATEXMK_CMD) $(MAIN)
 
 $(PLAN).pdf: $(PLAN).tex qproposal.cls bibliography.bib acronyms.tex
-	$(LATEXMK) $(LATEXMK_ENGINE) $(LATEXMK_CMD) $(PLAN)
+	$(LATEXMK) $(LATEXMK_OPTS) $(LATEXMK_ENGINE) $(LATEXMK_CMD) $(PLAN)
 	-makeglossaries $(PLAN)
-	$(LATEXMK) $(LATEXMK_ENGINE) $(LATEXMK_CMD) $(PLAN)
+	$(LATEXMK) $(LATEXMK_OPTS) -g $(LATEXMK_ENGINE) $(LATEXMK_CMD) $(PLAN)
 
 main: $(MAIN).pdf
 

@@ -789,7 +789,9 @@
 % ------------------------------------------------------------------------------
 
 \renewenvironment{abstract}{%
-  \par\noindent\small\quotation%
+  \par\vspace*{-\parskip}\vspace*{-\baselineskip}\noindent%
+  \small
+  \quotation
   \noindent\rule{\linewidth}{0.4pt}\par\vspace{0.1ex}\noindent%
 }{%
   \ifqproposal@haskeywords
@@ -827,9 +829,8 @@
 
 \def\@maketitle{%
   \begin{center}%
-    \vspace*{1.5ex}%
     {\LARGE\bfseries \qproposal@title\par}%
-    \vspace{1.5ex}%
+    \vspace{0.5ex}%
     {\large
       \lineskip .5em
       \qproposal@author\par
