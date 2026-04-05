@@ -23,6 +23,14 @@ This chapter introduces the dissertation. It outlines the motivation and context
 
 \section{Motivation and context}\label{sec:motivation}
 
+This dissertation focusses on the game of Battleship Solitaire, not to be confused with the more commonly known two-player Battleship game. The solitaire version is a deterministic, logic-based puzzle game played by a single person. The aim is to reconstruct a solution on the grid using the given row/column tallies, and localised shape hints.
+
+This is an NP-complete probem, which is the main motivation factor behind this project. As the grid size increases or the number of hints provided decreases, the search space explodes combinatorially.
+
+Because it is NP-complete, brute-force guessing is mathematically infeasible for large boards. Therefore, the problem serves as ideal testbed for advanced optmisation techniques, such as Integer Linear Programming, combined with modern-day constraint satisfaction solvers.
+
+Existing literature proposes multiple ways to translate the rules of Solitaire Battleship into linear algebra. One method uses modelling based on the cells, one models based on the ships. The comparison of these sets the stage for this project. 
+
 \newthought{This template illustrates} the structure and style of a dissertation using the Qyber dissertation class. As in a real introduction, you would state the problem domain, why it matters, and how your work fits. Acronyms use the long-short style: first use gives the full form (e.g.\@ \gls{uk}); later use \acrshort{api} or \acrlong{api} when you need only short or long.
 
 As shown in previous work~\citep{example-paper}, we follow standard practice.
@@ -36,12 +44,19 @@ As shown in previous work~\citep{example-paper}, we follow standard practice.
 
 \section{Aims and objectives}\label{sec:objectives}
 
-State the aim of your project and break it down into objectives. The following is a placeholder list (enumitem package: custom labels).
+The main aim of the project is to formulate, implement and evaluate multiple Integer Linear Programming (ILP) models for solving the NP-Complete Battleship Solitaire puzzle, to determine which is the most computationally efficient. 
+
+The following is the objectives needed to achieve this aim:
+
 
 \begin{enumerate}[label=\textbf{O\arabic*:}, leftmargin=*]
-  \item First objective: replace with your own.
-  \item Second objective.
-  \item Third objective.
+  \item Complete a literature review of existing algorithmic approaches to Battleship, focussing on ILP applications.
+  \item Develop a Python-based Battleship solitaire puzzle generator that can generate random valid board configurations and calculate row/column hints.
+  \item Formulate the Battleship rules as a mathematical model, defining decision variables for ship placement and linear constraints for geometry, overlap and grid boundaries.
+  \item Implement an optimisation library to solve generated puzzle instances.
+  \item Adapt the model to handle variations, such as different grid sizes and fleet compositions, to test scalability.
+  \item Implement a visualisation tool to display the current state of the ILP solver.
+  \item Test and evaluate the performance of the ILP solver.
 \end{enumerate}
 
 When you need mathematics, use amsmath and mathtools. Example:
@@ -55,6 +70,15 @@ Refer as Equation~\eqref{eq:example}; inline math: $\alpha + \beta = \gamma$. Pa
 % -----------------------------------------------------------------------------
 
 \section{Contributions}\label{sec:contributions}
+
+This dissertation presents a comprehensive algorithmic analysis of Integer Linear Programming (ILP) applied to Battleship Solitaire, an NP-Complete problem. The main contributions of this research are:
+
+\begin{itemize}
+  \item \textbf{Automated Evaluation Pipeline and Generator:} The development of a robust Python framework capable of parsing standard CSPLib Prolog datasets, alongside a dynamic puzzle generator designed to create mathematically valid instances up to 15x15 in size for scalability analysis.
+  \item \textbf{Comparative ILP Formulations:} The formal mathematical specification and Gurobi implementation of two distinct solver paradigms: a Cell-based model utilizing Big-M boundary constraints, and a Ship-based model employing candidate generation and Edge-Based Set Packing.
+  \item \textbf{Constraint Impact Analysis and Tuning:} A Constraint Impact Analysis revealed the 'Overhead vs. Pruning' trade-off, demonstrating that while explicit corner-banning reduced solve times on hard instances by pruning dead-end search branches, redundant parity constraints introduced matrix bloat that degraded performance.
+  \item \textbf{Scalability and Performance Discovery:} Conclusive evidence demonstrating that the Ship-based Set Packing formulation strictly dominates the Cell-based approach. The Ship model maintains a 5x to 12x speed advantage, efficiently solving 15x15 zero-hint instances where the Cell model suffers from combinatorial explosion.
+\end{itemize}
 
 \epigraph{The best way to predict the future is to invent it.}{Alan Kay}
 

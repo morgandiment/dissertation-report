@@ -13,6 +13,26 @@
 
 This chapter presents the results and evaluates them. Describe how the solution was demonstrated, include test or experimental results, and critically appraise strengths and weaknesses.
 
+% Storing full table here for future use. Data calculated on 01/04/2026.
+\begin{table}[htbp]
+  \centering
+  \caption{Constraint Impact Analysis: Average solve times (seconds) when removing individual redundant constraints from the fully loaded Cell Model.}
+  \label{tab:full_constraint_analysis}
+  \begin{tabular}{lcc}
+    \toprule
+    Constraint Configuration & Medium (4--9 Hints) & Hard (0--3 Hints) \\
+    \midrule
+    Baseline (No Redundant Constraints)     & 0.1106 & 0.1432 \\
+    All Constraints Active (A, B, C, D)     & 0.1061 & 0.1472 \\
+    \midrule
+    All \textit{except} A (Global Parity)   & 0.1059 & 0.1448 \\
+    All \textit{except} B (Line Parity)     & 0.1064 & 0.1473 \\
+    All \textit{except} C (Tally Logic)     & 0.1062 & 0.1430 \\
+    All \textit{except} D (Corner Banning)  & 0.1067 & 0.1486 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
 \lipsum[25-26]
 
 \section{Setup}\label{sec:setup}
