@@ -19,41 +19,138 @@
 %                   Literature and evidence; Summary.
 % =============================================================================
 
-This chapter describes how the problem was addressed. Choose sections that fit your project type; omit or merge as needed. Replace with enough detail for reproduction.
+% This chapter describes how the problem was addressed. Choose sections that fit your project type; omit or merge as needed. Replace with enough detail for reproduction.
 
-\lipsum[9-10]
+% \lipsum[9-10]
 
-\section{Research design}\label{sec:research-design}
-% Research: overall approach, methods (e.g.\@ quantitative, qualitative, design science), rationale. Omit for pure system-design projects.
+This chapter outlines the mathematical formulations of the two ILP models and the software architecture designed to evaluate them.
 
-\lipsum[11-12]
+\section{Specification and Requirements}\label{sec:specification-and-requirements}
+Before the modelling or coding of the system could begin, the rules of the puzzle and evaluation goals had to be formally defined.
 
-\section{Specification}\label{sec:spec}
-% System design: requirements (what the system must do; optional subsections: functional, non-functional). Research: problem and what is required of a solution.
+\subsection{Formal Problem Definition}\label{sec:formal-problem-definition}
+The puzzle has many parameters that the solving algorithms have to process.
+\begin{itemize}
+  \item \textbf{The Grid:} The puzzle is played on a square grid of size $N \times N$, which consists of cells defined by their position using row $i$ and column $j$ coordinates.
+  \item \textbf{The Fleet ($F$):} A predefined set of ship that must all be placed on the board to complete the puzzle. For example, the standard CSPLib fleet consists of a single Battleship (length 4), two Cruisers (length 3), three Destroyers (length 2) and four Submarines (length 1).
+  \item \textbf{The Tallies ($R$ and $C$):} Each row $i$ has a required sum $R_i$, and each column $j$ has a required sum $C_j$. These numbers represent the total number of ship segments that are present in that specific row or column.
+  \item \textbf{The Hints ($H$):} A set of cells revealed prior to solving that act as a base to build from. Each hint provides a coordinate ($i, j$) and a specific state from the following set:
+        \begin{itemize}
+            \item 'w': Water
+            \item 'c': Submarine
+            \item 't', 'b', 'l', 'r': Top, Bottom, Left or Right ends of a multi-cell ship
+            \item 'm': Middle segment of a ship (length of 3 or larger)
+        \end{itemize}
+\end{itemize}
 
-\lipsum[13-14]
+\subsection{Logical Constraints (The Game Rules)}\label{sec:logical-constraints}
+There are rules that the standard Battleship Solitaire game sticks to that also must be processed by the algorithms.
+\begin{itemize}
+    \item \textbf{Tally Satisfaction:} The total number of ship segments in any row or column must match the corresponding tally.
+    \item \textbf{Fleet Satisfaction:} The entire fleet specified in $F$ must be placed onto the grid.
+    \item \textbf{Ship Geometry:} Ships must be linear (horizontal or vertically) blocks of continuous segments. They cannot be placed diagonally.
+    \item \textbf{Non-Adjacency:} Ships cannot touch each out. They must be entirely surrounded by water. This also blocks diagonal touches.
+    \item \textbf{Hint Adherance:} The completed board state must respect the initial hints provided in $H$.
+\end{itemize}
 
-\section{Datasets}\label{sec:datasets}
-% AI/ML / empirical: data sources, preprocessing, train/validation/test split. Omit if not data-driven.
+\subsection{Software System Requirements}\label{sec:software-sys-requirements}
+These games rules were converted into software requirements, both functional and non-functional.
 
-\lipsum[15-16]
+\textbf{Functional Requirements}
+\begin{itemize}
+    \item \textbf{Parser Integration:} The system must be able to read and process the Prolog format used in the Constraint Satisfaction Problem Library (CSPLib).
+    \item \textbf{Solver Implementations:} The system mut implement the two optimisation models using the Gurobi interfce. One being the Cell-based method which uses Big-M boundary logic, and the other being the Ship-based model which uses candidate generation and set packing.
+    \item \textbf{Dataset Generation:} As the existing datasets are limited, the system must have a generator capable of building valid puzzle instances at a varying number of hints and and dimensions.
+    \item \textbf{Evaluation and Benchmarking:} The system must feature an evaluator that can run the two algorithms sequentially, record their execution times and output visualisations to aid analysis.
+    \item \textbf{Graphical Interface:} The system must provide a GUI that allows users to interactively input parameters and cell information, and visualise the solver's output.
+\end{itemize}
 
-\section{AI and machine learning models}\label{sec:aiml}
-% AI/ML: model choice, training and validation, evaluation methodology. Omit otherwise.
+\textbf{Non-Functional Requirements}
+\begin{itemize}
+    \item \textbf{Scalability:} The system mut be capable of dealing with combinatorial explosion, managing extreme memory limits and time limits well.
+    \item \textbf{Thread Safety and Responsiveness:} The graphical user interface must remain fully response during intensive evaluation of the Gurobi optimiser.
+    \item \textbf{Reproducibility:} Evaluation outputs must be deterministic, so they can be reproduced if needed.
+\end{itemize}
 
-\lipsum[17-18]
+\section{System Architecture}\label{sec:system-architecture}
 
-\section{System design}\label{sec:design}
-% System design: architecture, data flow, behaviour (UML, ER, state charts). Use diagrams. Research: use ``Approach and solution'' for your proposed solution(s).
+The software was designed to be modular from the beginning. The mathematical optimisation engines are decoupled from the user interface and the evaluation pipelines, so things can run independently if needed.
 
-\lipsum[19-20]
+\subsection{Hardware and Execution Environment}\label{sec:hardware-execution-env}
+
+Computational complexity (NP-Hardness) is bound by physical hardware limits, so first the hardware environment will be defined.
+
+The development, dataset generation and evaluation runs were executed on a 2024 Apple Macbook Air, using the M3 chip and 16GB of unified memory.
+
+The M3 provides high single-thread performance, which benefits Gurobi's branch-and-bound search tree used in the Cell model. The 16GB of memory will be the main limitation for the Ship model's candidate generation, once the grid reaches larger sizes of $15 \times 15$ and up.
+
+The opearating system of the device is macOS Sequoia 15.7.4, which features strict thread-safety protcols.
+
+\subsection{Core System Modules}\label{core-sys-modules}
+
+The architecture follows a modified Model-View-Controller (MVC) pattern, divided into four seperate layers.
+
+\begin{enumerate}
+    \item \textbf{The Data Ingestion Layer:} This layer is responsible for following the standardised data format. It contains the Regex pipeline that reads the standard Prolog CSPLib files. It also contains the custom puzzle generator used for scalability testing on the models. This layer packages the information on the provided standardised puzzle into a BattleshipPuzzle Python object. This ensures that both ILP solvers recieve identical data structures.
+    \item \textbf{The Optimisation Engine:} This layer works by calling .solve(puzzle), which swaps between the Cell model and Ship model without needing to alter the underlying code. The solvers in turn translate the BattleshipPuzzle object into matrix equations and feed them into the Gurobi Optimiser, which executes the linear algebra and returns the solved matrix to the Python wrapper.
+    \item \textbf{The Presentation Layer:} This layer is built using CustomTkinter, and provides the interactive visual single-run grid and batch-evaluation controls. Gurobi solver executions are run on asynchronous background threads to prevent the GUI from freezing. A textboxRedirector is used to intercept the terminal output and queue it for the main UI using event scheduling.
+    \item \textbf{The Evaluation Layer:} This module automates the generation of statistical evidence. It calculates solver speeds and shows them in comparison to puzzle difficulty (categorised by number of hints). Matplotlib is run headlessly to prevent macOS thread violations during batch runs, with the results being saved as .png files.
+\end{enumerate}
+
+\subsection{System Data Flow}\label{sys-data-flow}
+
+A quick step-by-step summary on how data moves through the system during a single puzzle solve using the GUI.
+\begin{enumerate}
+    \item \textbf{Input:} The user clicks grid cells to input the hints and types the corresponding tallies into the CustomTkinter GUI.
+    \item \textbf{Translation:} The GUI compiles the visual input into a formatted CSPLib string and instantiates a BattleshipPuzzle object.
+    \item \textbf{Dispatch:} The GUI passes the object to the selected solver on a background thread.
+    \item \textbf{Optimisation:} Gurobi calculates the optimial candiate and returns the geometric coordinates to Python.
+    \item \textbf{Update:} The main thread reads the given coordinates and updates the cell on the GUI to reveal the solution to the user.
+\end{enumerate}
+
+% \lipsum[13-14]
+
+\section{Mathematical Formulation: The Cell-Based Model}\label{sec:math-formulation-cell}
+
+The Cell-based approach models the puzzles by treating the battleship grid as a matrix of individual squares. The solver then determines the state of each cell and applies localised boundary logic to ensure the fleet is formed correctly without breaking any of the game rules.
+
+\subsection{Decision Variables}\label{decision-variables}
+To capture the presence of a ship in a cell, and its specific shape, the cell-model uses a set of binary decision variables for every cell $(i, j)$ in the $N \times N$ grid.
+
+Let $S$ be the set of all possible cell states: $S = \{w, c, t, b, l, r, m\}$ representing Water, Circle (submarine), Top, Bottom, Left, Right and Middle respectively.
+
+We define the binary variable for each state in each cell as:
+\begin{equation}
+    v_{i,j}^s \in \{0, 1\} \quad \forall i,j \in \{1 \dots N\}, \forall s \in S
+\end{equation}
+
+Each cell must have exactly one state at any given time, so a uniqueness constrain is applied:
+\begin{equation}
+    \sum_{s \in S} v_{i,j}^s = 1 \quad \forall i,j \in \{1 \dots N\}
+\end{equation}
+
+For convenience when calculating the row/columnn tallies, we define an auxiliary binary variables $x_{i,j}$ which equals 1 if the cell contains any form of ship segment, and 0 if it is water:
+\begin{equation}
+    x_{i,j} = 1 - v_{i,j}^w
+\end{equation}
+
+\subsection{Tally Constraints}\label{tally-constraints}
+
+% \lipsum[15-16]
+
+\section{Mathematical Formulation: The Ship-Based Model}\label{sec:math-formulation-ship}
+% \lipsum[17-18]
+
+\section{Datasets and Dynamic Generation}\label{sec:datasets-dynamic-gen}
+
+% \lipsum[19-20]
 
 \section{Implementation}\label{sec:impl}
 % Realisation: key implementation choices and critical code; avoid describing every module. Optional: tools, platform, problems encountered.
 
-\lipsum[21-22]
+% \lipsum[21-22]
 
 \section{Summary}\label{sec:summary}
 % Optional: short summary of the methodology. Omit if the chapter is already concise.
 
-\lipsum[23-24]
+% \lipsum[23-24]
