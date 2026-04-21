@@ -26,3 +26,6 @@
 /main.pdf
 /plan.pdf
 /fonts/
+
+.vscode
+.DS_Store

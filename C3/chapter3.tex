@@ -30,28 +30,34 @@ Before the modelling or coding of the system could begin, the rules of the puzzl
 
 \subsection{Formal Problem Definition}\label{sec:formal-problem-definition}
 The puzzle has many parameters that the solving algorithms have to process.
-\begin{itemize}
-  \item \textbf{The Grid:} The puzzle is played on a square grid of size $N \times N$, which consists of cells defined by their position using row $i$ and column $j$ coordinates.
-  \item \textbf{The Fleet ($F$):} A predefined set of ship that must all be placed on the board to complete the puzzle. For example, the standard CSPLib fleet consists of a single Battleship (length 4), two Cruisers (length 3), three Destroyers (length 2) and four Submarines (length 1).
-  \item \textbf{The Tallies ($R$ and $C$):} Each row $i$ has a required sum $R_i$, and each column $j$ has a required sum $C_j$. These numbers represent the total number of ship segments that are present in that specific row or column.
-  \item \textbf{The Hints ($H$):} A set of cells revealed prior to solving that act as a base to build from. Each hint provides a coordinate ($i, j$) and a specific state from the following set:
-        \begin{itemize}
-            \item 'w': Water
-            \item 'c': Submarine
-            \item 't', 'b', 'l', 'r': Top, Bottom, Left or Right ends of a multi-cell ship
-            \item 'm': Middle segment of a ship (length of 3 or larger)
-        \end{itemize}
-\end{itemize}
+
+\textbf{The Grid:} The puzzle is played on a square grid of size $N \times N$, which consists of cells defined by their position using row $i$ and column $j$ coordinates.
+
+\textbf{The Fleet ($F$):} A predefined set of ship that must all be placed on the board to complete the puzzle. For example, the standard CSPLib fleet consists of a single Battleship (length 4), two Cruisers (length 3), three Destroyers (length 2) and four Submarines (length 1).
+
+\textbf{The Tallies ($R$ and $C$):} Each row $i$ has a required sum $R_i$, and each column $j$ has a required sum $C_j$. These numbers represent the total number of ship segments that are present in that specific row or column.
+
+\textbf{The Hints ($H$):} A set of cells revealed prior to solving that act as a base to build from. Each hint provides a coordinate ($i, j$) and a specific state from the following set:
+    \begin{itemize}
+        \item 'w': Water
+        \item 'c': Submarine
+        \item 't', 'b', 'l', 'r': Top, Bottom, Left or Right ends of a multi-cell ship
+        \item 'm': Middle segment of a ship (length of 3 or larger)
+    \end{itemize}
 
 \subsection{Logical Constraints (The Game Rules)}\label{sec:logical-constraints}
 There are rules that the standard Battleship Solitaire game sticks to that also must be processed by the algorithms.
-\begin{itemize}
-    \item \textbf{Tally Satisfaction:} The total number of ship segments in any row or column must match the corresponding tally.
-    \item \textbf{Fleet Satisfaction:} The entire fleet specified in $F$ must be placed onto the grid.
-    \item \textbf{Ship Geometry:} Ships must be linear (horizontal or vertically) blocks of continuous segments. They cannot be placed diagonally.
-    \item \textbf{Non-Adjacency:} Ships cannot touch each out. They must be entirely surrounded by water. This also blocks diagonal touches.
-    \item \textbf{Hint Adherance:} The completed board state must respect the initial hints provided in $H$.
-\end{itemize}
+
+\textbf{Tally Satisfaction:} The total number of ship segments in any row or column must match the corresponding tally.
+
+\textbf{Fleet Satisfaction:} The entire fleet specified in $F$ must be placed onto the grid.
+
+\textbf{Ship Geometry:} Ships must be linear (horizontal or vertically) blocks of continuous segments. They cannot be placed diagonally.
+
+\textbf{Non-Adjacency:} Ships cannot touch each out. They must be entirely surrounded by water. This also blocks diagonal touches.
+
+\textbf{Hint Adherence:} The completed board state must respect the initial hints provided in $H$.
+
 
 \subsection{Software System Requirements}\label{sec:software-sys-requirements}
 These games rules were converted into software requirements, both functional and non-functional.
@@ -59,7 +65,7 @@ These games rules were converted into software requirements, both functional and
 \textbf{Functional Requirements}
 \begin{itemize}
     \item \textbf{Parser Integration:} The system must be able to read and process the Prolog format used in the Constraint Satisfaction Problem Library (CSPLib).
-    \item \textbf{Solver Implementations:} The system mut implement the two optimisation models using the Gurobi interfce. One being the Cell-based method which uses Big-M boundary logic, and the other being the Ship-based model which uses candidate generation and set packing.
+    \item \textbf{Solver Implementations:} The system mut implement the two optimisation models using the Gurobi interface. One being the Cell-based method which uses Big-M boundary logic, and the other being the Ship-based model which uses candidate generation and set packing.
     \item \textbf{Dataset Generation:} As the existing datasets are limited, the system must have a generator capable of building valid puzzle instances at a varying number of hints and and dimensions.
     \item \textbf{Evaluation and Benchmarking:} The system must feature an evaluator that can run the two algorithms sequentially, record their execution times and output visualisations to aid analysis.
     \item \textbf{Graphical Interface:} The system must provide a GUI that allows users to interactively input parameters and cell information, and visualise the solver's output.
@@ -84,17 +90,17 @@ The development, dataset generation and evaluation runs were executed on a 2024 
 
 The M3 provides high single-thread performance, which benefits Gurobi's branch-and-bound search tree used in the Cell model. The 16GB of memory will be the main limitation for the Ship model's candidate generation, once the grid reaches larger sizes of $15 \times 15$ and up.
 
-The opearating system of the device is macOS Sequoia 15.7.4, which features strict thread-safety protcols.
+The operating system of the device is macOS Sequoia 15.7.4, which features strict thread-safety protocols.
 
 \subsection{Core System Modules}\label{core-sys-modules}
 
-The architecture follows a modified Model-View-Controller (MVC) pattern, divided into four seperate layers.
+The architecture follows a modified Model-View-Controller (MVC) pattern, divided into four separate layers.
 
 \begin{enumerate}
-    \item \textbf{The Data Ingestion Layer:} This layer is responsible for following the standardised data format. It contains the Regex pipeline that reads the standard Prolog CSPLib files. It also contains the custom puzzle generator used for scalability testing on the models. This layer packages the information on the provided standardised puzzle into a BattleshipPuzzle Python object. This ensures that both ILP solvers recieve identical data structures.
+    \item \textbf{The Data Ingestion Layer:} This layer is responsible for following the standardised data format. It contains the Regex pipeline that reads the standard Prolog CSPLib files. It also contains the custom puzzle generator used for scalability testing on the models. This layer packages the information on the provided standardised puzzle into a BattleshipPuzzle Python object. This ensures that both ILP solvers receive identical data structures.
     \item \textbf{The Optimisation Engine:} This layer works by calling .solve(puzzle), which swaps between the Cell model and Ship model without needing to alter the underlying code. The solvers in turn translate the BattleshipPuzzle object into matrix equations and feed them into the Gurobi Optimiser, which executes the linear algebra and returns the solved matrix to the Python wrapper.
     \item \textbf{The Presentation Layer:} This layer is built using CustomTkinter, and provides the interactive visual single-run grid and batch-evaluation controls. Gurobi solver executions are run on asynchronous background threads to prevent the GUI from freezing. A textboxRedirector is used to intercept the terminal output and queue it for the main UI using event scheduling.
-    \item \textbf{The Evaluation Layer:} This module automates the generation of statistical evidence. It calculates solver speeds and shows them in comparison to puzzle difficulty (categorised by number of hints). Matplotlib is run headlessly to prevent macOS thread violations during batch runs, with the results being saved as .png files.
+    \item \textbf{The Evaluation Layer:} This module automates the generation of statistical evidence. It calculates solver speeds and shows them in comparison to puzzle difficulty (categorised by number of hints). Matplotlib is run headless to prevent macOS thread violations during batch runs, with the results being saved as .png files.
 \end{enumerate}
 
 \subsection{System Data Flow}\label{sys-data-flow}
@@ -104,7 +110,7 @@ A quick step-by-step summary on how data moves through the system during a singl
     \item \textbf{Input:} The user clicks grid cells to input the hints and types the corresponding tallies into the CustomTkinter GUI.
     \item \textbf{Translation:} The GUI compiles the visual input into a formatted CSPLib string and instantiates a BattleshipPuzzle object.
     \item \textbf{Dispatch:} The GUI passes the object to the selected solver on a background thread.
-    \item \textbf{Optimisation:} Gurobi calculates the optimial candiate and returns the geometric coordinates to Python.
+    \item \textbf{Optimisation:} Gurobi calculates the optimal candidate and returns the geometric coordinates to Python.
     \item \textbf{Update:} The main thread reads the given coordinates and updates the cell on the GUI to reveal the solution to the user.
 \end{enumerate}
 
@@ -114,7 +120,7 @@ A quick step-by-step summary on how data moves through the system during a singl
 
 The Cell-based approach models the puzzles by treating the battleship grid as a matrix of individual squares. The solver then determines the state of each cell and applies localised boundary logic to ensure the fleet is formed correctly without breaking any of the game rules.
 
-\subsection{Decision Variables}\label{decision-variables}
+\subsection{Decision Variables}\label{cell-decision-variables}
 To capture the presence of a ship in a cell, and its specific shape, the cell-model uses a set of binary decision variables for every cell $(i, j)$ in the $N \times N$ grid.
 
 Let $S$ be the set of all possible cell states: $S = \{w, c, t, b, l, r, m\}$ representing Water, Circle (submarine), Top, Bottom, Left, Right and Middle respectively.
@@ -124,22 +130,113 @@ We define the binary variable for each state in each cell as:
     v_{i,j}^s \in \{0, 1\} \quad \forall i,j \in \{1 \dots N\}, \forall s \in S
 \end{equation}
 
-Each cell must have exactly one state at any given time, so a uniqueness constrain is applied:
+Each cell must have exactly one state at any given time, so a uniqueness constraint is applied:
 \begin{equation}
     \sum_{s \in S} v_{i,j}^s = 1 \quad \forall i,j \in \{1 \dots N\}
 \end{equation}
 
-For convenience when calculating the row/columnn tallies, we define an auxiliary binary variables $x_{i,j}$ which equals 1 if the cell contains any form of ship segment, and 0 if it is water:
+For convenience when calculating the row/column tallies, we define an auxiliary binary variables $x_{i,j}$ which equals 1 if the cell contains any form of ship segment, and 0 if it is water:
 \begin{equation}
     x_{i,j} = 1 - v_{i,j}^w
 \end{equation}
 
 \subsection{Tally Constraints}\label{tally-constraints}
 
+The most fundamental rule is the requirements of the sum of the ship segments in any row or column to perfectly match the provided tallies, $R_i$ and $C_j$. This is formulated as straight-forward linear summations:
+
+\textbf{Row Tallies:}
+\begin{equation}
+    \sum_{j=1}^{N} x_{i,j} = R_i \quad \forall i \in \{1 \dots N\}
+\end{equation}
+
+\textbf{Column Tallies:}
+\begin{equation}
+    \sum_{i=1}^{N} x_{i,j} = C_j \quad \forall j \in \{1 \dots N\}
+\end{equation}
+
+\subsection{Geometric and Non-Adjacency Constraints}\label{geo-and-non-adj-constraints}
+
+These constraints are what cause the Cell Model to become computationally expensive. The solver must use dense conditional logic to prevent any ship from touching.
+
+\textbf{Diagonal Non-Adjacency:}
+Ships are forbidden from touching diagonally. Therefore, for any $2 \times 2$ block of cells, two diagonally opposite cells cannot both contain a ship segment simultaneously:
+\begin{equation}
+    x_{i,j} + x_{i+1, j+1} \leq 1 
+\end{equation}
+\begin{equation}
+    x_{i+1, j} + x_{i, j+1} \leq 1
+\end{equation}
+
+\textbf{Shape Transition Logic (The "Big-M" equivalent):}
+To ensure that ships form valid linear blocks, the state of one cell strictly dictates the allowed sates of its neighbour. For example, if a cell is designated as a Top segment (\textit{t}), the cell immediately below it must be either a Bottom (\textit{b}) or a Middle (\textit{m}). This implication logic is modelled as a linear inequality:
+\begin{equation}
+    v_{i,j}^t \leq v_{i+1, j}^b + v_{i+1, j}^m
+\end{equation}
+This identical logic must be explicitly defined and expanded for every possible shape interaction (e.g. Left segments demanding a Right or Middle segment to their right), resulting in a dense constraint matrix.
+
+\textbf{Hint Adherence:}
+Any pre-revealed hints provided in the set $H$ are enforced through bounding the corresponding decision variable to 1, instantly pruning invalid branches from the solver's search tree. If hint $H$ dictates that cell ($i$, $j$) is state $k$:
+\begin{equation}
+    v_{i,j}^k = 1
+\end{equation}
+
 % \lipsum[15-16]
 
 \section{Mathematical Formulation: The Ship-Based Model}\label{sec:math-formulation-ship}
+
+The ship-based solver works by generating every valid ship placement upfront and ask the solver to pick the correct combination of ships from the selection, instead of working cell-by-cell.
+
+\subsection{Pre-Processing and Candidate Generation}\label{pre-proc-and-candidate-gen}
+
+Before the optimisation matrix is built, a pre-processing algorithm traverses the grid to generate the complete set of valid ship candidates, $C$.
+
+A candidate $c \in C$ represents a ship of length L placed at specific coordinates. Candidates are pruned to reduce the search space before Integer Linear Programming (ILP) begins.
+
+No candidate is generated on cells known to be water (from the hint set $H$), and no candidate is generated if it would intersect a row $i$ where $R_i = 0$, or a column $j$ where $C_j = 0$.
+
+\subsection{Decision Variables}\label{ship-decision-variables}
+
+The model only requires a single, one-dimensional array of binary decision variables as the geometry is pre-calculated.
+
+Let $y_c \in \{0, 1\} = 1$ if candidate $c$ is selected for the final board state, and 0 otherwise:
+\begin{equation}
+    y_c \in \{0, 1\} \quad \forall c \in C
+\end{equation}
+
+\subsection{Fleet and Tally Constraints}\label{fleet-and-tally-constraints}
+
+The model must fulfill the exact fleet specification and the discrete tomography tallies provided.
+
+\textbf{Fleet Constraint:}
+Let $C_k \subseteq C$ be the subset of all candidates of a specific ship class $k$ (e.g. all of the Destroyers). The number of selected candidates from this class must match the required fleet count $F_k$.
+\begin{equation}
+    \sum_{c \in C_k} y_c = F_k \quad \forall k \in \text{Classes}
+\end{equation}
+
+\textbf{Tally Constraints:}
+Let $a_{i,c}$ represent the number of segments candidate $c$ occupies in row $i$, and $b_{j,c}$ represent the segments in column $j$. The sum of all segments from the chosen candidates must satisfy the tallies:
+\begin{equation}
+    \sum_{c \in C} a_{i,c} y_c = R_i \quad \forall i \in \{1 \dots N\}
+\end{equation}
+\begin{equation}
+    \sum_{c \in C} b_{j,c} y_c = C_j \quad \forall j \in \{1 \dots N\}
+\end{equation}
+
+\subsection{Edge-Based Set Packing (Conflict Constraints)}\label{edge-based-set-packing}
+This is where the Ship Model finds its speed, as Gurobi deals with sparse matrices with extreme efficiency. Due to the fact ships cannot overlap or touch diagonally/adjacently, many of the candidates are mutually exclusive.
+
+Rather than using complex transition logic like the Cell Model, this model builds a Conflict Graph. This is formulated as a highly sparse Edge-Packing constraint. Let $E$ be the set of all edges representing a conflict between two candidates. Two candidates, $u$ and $v$, conflict if they overlap or touch:
+\begin{equation}
+    y_u + y_v \leq 1 \quad \forall (u, v) \in E
+\end{equation}
+
 % \lipsum[17-18]
+
+\subsection{Hint Adherence}\label{hint-adherance}
+Hints are enforced by ensuring that exactly one candidate matching the hint is selected. Let $C_h$ be the subset of candidates that place the exact correct ship segment over the hint coordinate $h \in H$:
+\begin{equation}
+    \sum_{c \in C_h} y_c = 1 \quad \forall h \in H
+\end{equation}
 
 \section{Datasets and Dynamic Generation}\label{sec:datasets-dynamic-gen}
 
