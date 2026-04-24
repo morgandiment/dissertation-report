@@ -25,7 +25,11 @@ Battleship Solitaire is a deterministic logic puzzle, that players solve using t
 
 Solving discrete tomography isn't just for puzzles, it has real-world applications, mainly in medical imaging (such as MRI/CT scans), scheduling, and VLSI microchip design.
 
-The problem of Battleship Solitaire is an NP-Complete one, meaning that problems generally require exponential time to solve. In the context of this project, as the grid size increases, the number of possible ship configurations grows exponentially. This means brute-force search algorithms are inefficient for large boards.
+The problem of Battleship Solitaire is an NP-Complete one, meaning that problems generally require exponential time to solve. In the context of this project, as the grid size increases, the number of possible ship configurations grows exponentially. Any known algorithm to solve these NP-Complete problems are exponential in the worst case. 
+
+The idea is to find good solutions in the average cases, or cases that occur more often given some distribution, assumptions or domain of the application.
+
+% Why is solving this puzzle important from a computational perspective. Could discuss np-complete problems and challenges of solving them. Mentions of all known approaches are exponential in worst case (polynomial approaches would be possible online if P=NP which is an open problem). Just a suggestion
 
 % \lipsum[3-4]
 
@@ -33,13 +37,13 @@ The problem of Battleship Solitaire is an NP-Complete one, meaning that problems
 % Prior solutions, methods, or systems; identify gaps your work addresses.
 % Optional subsections: by theme, chronology, or type (e.g.\@ systems, methods, theory).
 
-Currently, a few different algorithmic approaches to solving NP-Complete puzzles. Constraint Programming (CP) being one, and Integer Linear Programing (ILP) being another. 
+Currently, a few different algorithmic approaches to solving NP-Complete problems. Constraint Programming (CP) being one, and Integer Linear Programing (ILP) being another. 
 
 CP uses domain reduction to cross out infeasible values for each square in a puzzle. ILP translates the entire board into a matrix, then uses `branch-and-bound` algorithms to mathematically find the optimal layout.
 
-The foundation literature for this project is the ILP formulations proposed by Meufells. He demonstrated that it is possible to conceptualise two distinct ways to translate the Battleship Solitaire puzzle into ILP mathematical models. The paper defines the cell-based and ship-based approaches, but lacks extensive testing and scaling of the problems they solve. This project aims to turn these models into a solution written in the modern day, with testing completed that pushes the boundaries of combinatorial algorithms to understand them further.
+The foundation literature for this project is the ILP formulations proposed by Meufells \citep{ilp-paper}. He demonstrated that it is possible to conceptualise two distinct ways to translate the Battleship Solitaire puzzle into ILP mathematical models. The paper defines the cell-based and ship-based approaches, but lacks extensive testing and scaling of the problems they solve. This project aims to turn these models into a solution written in the modern day, with testing completed that pushes the boundaries of combinatorial algorithms to understand them further.
 
-This project uses the Gurobi Optimiser, which is the industry standard for solving optmisation problems. 
+This project uses the Gurobi Optimiser \footnote{Available at https://www.gurobi.com/product}, which is the industry standard for solving optimisation problems. 
 
 The project also uses CSPLib, which contains many constraint problem datasets. Allow the solver to read the format provided by CSPLib means the research is reproducible.
 
@@ -48,6 +52,6 @@ The project also uses CSPLib, which contains many constraint problem datasets. A
 \section{Problem statement}\label{sec:problem}
 % Clear statement of the problem and, if applicable, research question(s).
 
-The aim of this project is to solve the NP-Complete discrete tomography problem, Battleship Solitaire, using competing Integer Linear Programming (ILP) paradigms, to determine the most computationally efficient mathemathical approach.
+The aim of this project is to solve the NP-Complete Battleship Solitaire, using Integer Linear Programming (ILP) paradigms, to determine the most computationally efficient ILP approach.
 
 % \lipsum[7-8]

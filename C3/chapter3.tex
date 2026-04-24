@@ -118,7 +118,7 @@ A quick step-by-step summary on how data moves through the system during a singl
 
 \section{Mathematical Formulation: The Cell-Based Model}\label{sec:math-formulation-cell}
 
-The Cell-based approach models the puzzles by treating the battleship grid as a matrix of individual squares. The solver then determines the state of each cell and applies localised boundary logic to ensure the fleet is formed correctly without breaking any of the game rules.
+The Cell-based approach models the puzzles by treating the battleship grid as a matrix of individual squares. The solver then determines the state of each cell and applies localised boundary logic to ensure the fleet is formed correctly without breaking any of the game rules. The constraint equations are from Meuffels \citep{ilp-paper}.
 
 \subsection{Decision Variables}\label{cell-decision-variables}
 To capture the presence of a ship in a cell, and its specific shape, the cell-model uses a set of binary decision variables for every cell $(i, j)$ in the $N \times N$ grid.
@@ -184,7 +184,7 @@ Any pre-revealed hints provided in the set $H$ are enforced through bounding the
 
 \section{Mathematical Formulation: The Ship-Based Model}\label{sec:math-formulation-ship}
 
-The ship-based solver works by generating every valid ship placement upfront and ask the solver to pick the correct combination of ships from the selection, instead of working cell-by-cell.
+The ship-based solver works by generating every valid ship placement upfront and ask the solver to pick the correct combination of ships from the selection, instead of working cell-by-cell. The constraint equations are from Meuffels \citep{ilp-paper}.
 
 \subsection{Pre-Processing and Candidate Generation}\label{pre-proc-and-candidate-gen}
 
@@ -239,6 +239,16 @@ Hints are enforced by ensuring that exactly one candidate matching the hint is s
 \end{equation}
 
 \section{Datasets and Dynamic Generation}\label{sec:datasets-dynamic-gen}
+
+To evaluate the scalability and computational efficiency of the ILP models, a robust dataset was required. A hybrid approach was adopted because publicly available datasets are limited to standard grid sizes. A standard library was utilised for baseline validation, and a customer generator utilised for scalability testing.
+
+\subsection{Standard Academic Dataset (CSPLib)}\label{standard-academic-dataset}
+
+To ensure the solvers were mathematically sound and could replicate known academic benchmarks, the system was engineered to ingest data from the Constraint Satisfaction Problem Library (CSPLib), specifically Problem 014 (Solitare Battleships).
+
+Standard CSPLib files are formatted as Prolog strings. A custom Regular Expression (Regex) pipeline was implemented to parse these strings, extracting the grid dimensions, fleet specification, row/column tallies and the provided hints.
+
+By successfully solving the instances provided in the CSPLib dataset, the models were validated against ground-truth configurations before custom data was introduced.
 
 % \lipsum[19-20]
 

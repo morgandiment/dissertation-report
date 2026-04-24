@@ -21,7 +21,7 @@
 % -----------------------------------------------------------------------------
 % Use \section, \subsection, \label{key}. Refer with \ref{key} or \autoref{key}.
 
-\section{Motivation and context}\label{sec:motivation}
+\section{Motivation and Context}\label{sec:motivation}
 
 This dissertation focusses on the game of Battleship Solitaire, not to be confused with the more commonly known two-player Battleship game. The solitaire version is a deterministic, logic-based puzzle game played by a single person. The aim is to reconstruct a solution on the grid using the given row/column tallies, and localised shape hints.
 
@@ -42,21 +42,17 @@ Existing literature proposes multiple ways to translate the rules of Solitaire B
 % -----------------------------------------------------------------------------
 % Use \citep{} (parenthetical) or \citet{} (narrative), not \cite.
 
-\section{Aims and objectives}\label{sec:objectives}
+\section{Aims and Objectives}\label{sec:objectives}
 
-The main aim of the project is to formulate, implement and evaluate multiple Integer Linear Programming (ILP) models for solving the NP-Complete Battleship Solitaire puzzle, to determine which is the most computationally efficient. 
+The main aim of the project is to determine the most computationally efficient Integer Linear Programming (ILP) paradigm for solving the NP-Complete Battleship Solitaire problem through comparative anaylsis of multiple ILP formulations.
 
-The following is the objectives needed to achieve this aim:
-
+To achieve this aim successfully, the project will have the following objectives:
 
 \begin{enumerate}[label=\textbf{O\arabic*:}, leftmargin=*]
-  \item Complete a literature review of existing algorithmic approaches to Battleship, focussing on ILP applications.
-  \item Develop a Python-based Battleship solitaire puzzle generator that can generate random valid board configurations and calculate row/column hints.
-  \item Formulate the Battleship rules as a mathematical model, defining decision variables for ship placement and linear constraints for geometry, overlap and grid boundaries.
-  \item Implement an optimisation library to solve generated puzzle instances.
-  \item Adapt the model to handle variations, such as different grid sizes and fleet compositions, to test scalability.
-  \item Implement a visualisation tool to display the current state of the ILP solver.
-  \item Test and evaluate the performance of the ILP solver.
+  \item To define and implement two ILP formulations for the Battleship ruleset. The first being a Cell-based (Big-M) constraint model, and the second a Ship-based (Set Packing) candidate model.
+  \item To engineer a scalable, automated evaluation environment that integrates a puzzle generator, a standard CSPLib format parser, and the Gurobi optimisation engine to facilitate standardised solver benchmarking.
+  \item To construct a decoupled graphical user interface (GUI), that utilises a Model-View-Controller architecture. Allowing for the real-time visualisation of solver outputs and the interactive construction of problems.
+  \item To conduct a systematic evaluation comparing the computational overhead, search-tree pruning efficiency, and scalability limits of the formulated ILP encodings against datasets of varying heuristic difficulty and grid dimensions. 
 \end{enumerate}
 
 % When you need mathematics, use amsmath and mathtools. Example:
