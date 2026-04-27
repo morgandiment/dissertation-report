@@ -11,27 +11,7 @@
 % critically appraise strengths and weaknesses.
 % =============================================================================
 
-This chapter presents the results and evaluates them. Describe how the solution was demonstrated, include test or experimental results, and critically appraise strengths and weaknesses.
-
-% Storing full table here for future use. Data calculated on 01/04/2026.
-\begin{table}[htbp]
-  \centering
-  \caption{Constraint Impact Analysis: Average solve times (seconds) when removing individual redundant constraints from the fully loaded Cell Model.}
-  \label{tab:full_constraint_analysis}
-  \begin{tabular}{lcc}
-    \toprule
-    Constraint Configuration & Medium (4--9 Hints) & Hard (0--3 Hints) \\
-    \midrule
-    Baseline (No Redundant Constraints)     & 0.1106 & 0.1432 \\
-    All Constraints Active (A, B, C, D)     & 0.1061 & 0.1472 \\
-    \midrule
-    All \textit{except} A (Global Parity)   & 0.1059 & 0.1448 \\
-    All \textit{except} B (Line Parity)     & 0.1064 & 0.1473 \\
-    All \textit{except} C (Tally Logic)     & 0.1062 & 0.1430 \\
-    All \textit{except} D (Corner Banning)  & 0.1067 & 0.1486 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+% This chapter presents the results and evaluates them. Describe how the solution was demonstrated, include test or experimental results, and critically appraise strengths and weaknesses.
 
 % \lipsum[25-26]
 
@@ -63,9 +43,96 @@ In order to thoroughly test the boundaries of the models, the evaluation was don
 % Main findings: present tables and figures; summarise key outcomes. Optional
 % subsections: by research question, by dataset, or by metric.
 
-% Cumulative performance - cactus plot. Ship model fastest, cell exponential curves
+The empirical evaluation of the Integer Linear Programming models yielded definitive results regarding algorithmic efficiency, scalability limits, and the impact of polyhedral tightening via valid inequalities.
+
+\subsection{Cumulative Performance and Difficulty Analysis}\label{cumulative-performance}
+The standard 10x10 CSPLib dataset was processed to establish a baseline of solver efficiency across varying heuristic difficulties. As visualised in the scatter plot (Figure~\ref{fig:difficulty_scatter}), the Ship-based model has a computational dominance over the Cell-based model across all instances.
+
+Notably, the performance gap widens significantly as the hint density decreases. For "Hard" instances (0-3 hints), the standard Cell model frequently requires over 0.4 seconds to resolve the dense transition logic. In contrast, the Set Packing geometry of the Ship model resolves the same instances in near-constant time, tightly clustered near the 0.05-second mark regardless of hint density.
+
+This resilience against combinatorial explosion is further evidenced by the cumulative performance Cactus Plot (Figure~\ref{fig:cactus_plot}). The Ship model maintains a linear, flat trajectory, successfully solving the entire dataset with negligible time variation. Conversely, both the Standard and Improved Cell models exhibit the classic exponential "hockey stick" curve, wherein the final 20\% of computationally hard puzzles cause the branch-and-bound search trees to expand massively, driving up total execution time.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/10x10_dataset/solver_difficulty_scatter_2026-04-27_14-24-03.png}
+        \caption{Performance comparison by hint density.}
+        \label{fig:difficulty_scatter}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/10x10_dataset/solver_cactus_2026-04-27_14-24-03.png}
+        \caption{Cumulative solve times (Cactus Plot).}
+        \label{fig:cactus_plot}
+    \end{subfigure}
+    \caption{Baseline performance evaluation on the 10x10 dataset, demonstrating the Ship Model's resilience against hard, low-hint instances.}
+    \label{fig:baseline_performance}
+\end{figure}
+
 % scaling behaviour and mathematical complexity - scaling line graph and nodes bar chart. side by side or stacked. Point out grid size where std cell model breaks. Show improved model suppresses node spike
+\subsection{Scaling Behaviour and Mathematical Complexity}\label{scaling-behaviour}
+To stress-test the models beyond standard parameters, the procedural generator evaluated grid sizes scaling from 36 to 225 total cells. Figure~\ref{fig:line_scaling} maps the average solve times on a logarithmic scale. The Ship model remains an order of magnitude faster across all dimensions. However, it is vital to note that while the Ship model solves a 15x15 grid rapidly, its candidate generation phase becomes heavily memory-bound at this scale, establishing a physical hardware limitation despite its mathematical superiority.
+
+The root cause of the Cell model's exponential scaling is exposed by tracking the Gurobi Branch-and-Bound node count (Figure~\ref{fig:node_complexity}).  The Ship model consistently explores zero nodes—meaning Gurobi's internal presolve and root-node relaxations are powerful enough to identify the optimal Set Packing combination without ever initiating a search tree. The Standard Cell model, however, is forced to explore hundreds of nodes as the grid expands, systematically guessing and backtracking through the dense Big-M matrix.
+
+Crucially, the Improved Cell model tightens the feasible polytope, meaning the solver is forced to explore significantly fewer dead-end branches. This lead to a successful suppression of the node spike in the Standard Cell model. 
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/generated_dataset/solver_line_comparison_2026-04-27_14-20-56.png}
+        \caption{Logarithmic scaling of average solve time.}
+        \label{fig:line_scaling}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/generated_dataset/solver_nodes_comparison_2026-04-27_14-20-56.png}
+        \caption{Average Branch-and-Bound nodes explored.}
+        \label{fig:node_complexity}
+    \end{subfigure}
+    \caption{Scalability and mathematical complexity tracking across dynamically generated grids.}
+    \label{fig:scaling_complexity}
+\end{figure}
+
 % Impact of valid inequalities - full constraint analysis table into here. Cuts comparison bar chart too. Highlight table state time saved on medium and acknowledge overhead on hard puzzles.
+\subsection{Impact of Valid Inequalities (Constraint Ablation)}\label{subsec:valid-inequalities-impact}
+While Figure~\ref{fig:node_complexity} proves that the valid inequalities successfully prune the search tree, this mathematical efficiency does not perfectly translate to a raw reduction in solve times. 
+
+As shown in the Cuts Comparison chart (Figure~\ref{fig:cuts_comparison}), the Improved Cell model only offers marginal speed upgrades, and occasionally performs slightly worse than the Standard model. This exposes the "Overhead vs. Pruning" paradox inherent to Integer Linear Programming.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/generated_dataset/solver_cuts_comparison_2026-04-27_14-20-56.png}
+    \caption{Direct solve time comparison illustrating the matrix overhead introduced by valid inequalities.}
+    \label{fig:cuts_comparison}
+\end{figure}
+
+The constraint impact analysis (Table~\ref{tab:full_constraint_analysis}) quantifies this speed trade-off. For Medium puzzles, the baseline model (0.1106s) is slower than the full improved model (0.1061s). The valid inequalities successfully intercept bad guesses early, saving time. 
+
+However, on Hard puzzles (0.1432s baseline vs. 0.1472s all constraints), the heuristics are already starved of hints. Forcing Gurobi to process four additional dense equations for every cell introduces matrix bloat (computational overhead) that slightly outweighs the time saved by pruning nodes.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Constraint Impact Analysis: Average solve times (seconds) when removing individual redundant constraints from the fully loaded Cell Model.}
+  \label{tab:full_constraint_analysis}
+  \begin{tabular}{lcc}
+    \toprule
+    Constraint Configuration & Medium (4--9 Hints) & Hard (0--3 Hints) \\
+    \midrule
+    Baseline (No Redundant Constraints)     & 0.1106 & 0.1432 \\
+    All Constraints Active (A, B, C, D)     & 0.1061 & 0.1472 \\
+    \midrule
+    All \textit{except} A (Global Parity)   & 0.1059 & 0.1448 \\
+    All \textit{except} B (Line Parity)     & 0.1064 & 0.1473 \\
+    All \textit{except} C (Tally Logic)     & 0.1062 & 0.1430 \\
+    All \textit{except} D (Corner Banning)  & 0.1067 & 0.1486 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 % \lipsum[29-30]
 

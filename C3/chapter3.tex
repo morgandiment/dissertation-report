@@ -342,8 +342,8 @@ Puzzles were generated at progressively larger dimensions (6x6, 8x8, 10x10, 12x1
 The difficulty of a Solitaire Battleship instance is largely dictated by the number of starting hints. These hints act as anchors that prune the search tree. The less hints, the more the solver relies on the row/column tallies. The generator produced datasets categorised by hint density:
 \begin{itemize}
     \item \textbf{Easy:} 10+ hints.
-    \item \textbf{Medium:} 4-9 hints.
-    \item \textbf{Hard:} 0-3 hints.
+    \item \textbf{Medium:} 4--9 hints.
+    \item \textbf{Hard:} 0--3 hints.
 \end{itemize}
 
 % \lipsum[19-20]
@@ -356,7 +356,7 @@ The models and architecture described in the previous sections were implemented 
 \subsection{Data Structures and Parsing}\label{data-structures-parsing}
 A central \verb|BattleshipPuzzle| class was implemented to encapsulate the grid dimensions, fleet specification, tallies and hints. This prevented the passing of raw arrays between functions.
 
-To ensure compatibility with standard academic datasets, a custom parsing module was implemented. The CSPLib datasets store problem instances as Prolog strings. A Regular Expression (Regex) pipeline was engineered to extract these parameters:
+To ensure compatibility with standard academic datasets, a custom parsing module was implemented. The CSPLib datasets store problem instances as Prolog strings. A Regular Expression (Regex) pipeline was engineered (with syntax assistance from \citet{gemini}) to extract these parameters:
 \begin{verbatim}
     pattern = re.compile(
         r'problem\s*\(\s*(\d+)\s*,'      
@@ -391,7 +391,7 @@ Due to the fact that the complex matrices used in solving the Solitaire Battlesh
 
 The standard solution of running the solver on an asynchronous background thread resulted in fatal system crashes (\verb|NSInternalInconsistencyException|). This occurred because macOS strictly prohibits background threads from directly modifying UI components or terminal outputs.
 
-The solution that worked was implementing a thread-safe event queueing system. A \verb|TextboxRedirector| class was engineered to intercept the standard \verb|print()| statements from the background solver and safely schedule them to be rendered by the main thread using the \verb|tkinter.after()| event loop:
+The solution that worked (identified through troubleshooting with \citet{gemini}) was implementing a thread-safe event queueing system. A \verb|TextboxRedirector| class was engineered to intercept the standard \verb|print()| statements from the background solver and safely schedule them to be rendered by the main thread using the \verb|tkinter.after()| event loop:
 \begin{verbatim}
     def write(self, text):
         self.textbox.after(0, self._insert_text, text)
@@ -413,7 +413,6 @@ A complete decoupled software architecture was engineered to complete the compar
 Furthermore, engineering specific to macOS such as asynchronous thread-safe event queueing and headless visualisation was implemented. This was to guarantee a responsive and stable automated testing environment.
 
 Two distinct optimisation paradigms were successfully formulated using the Gurobi Python API:
-
 \begin{itemize}
     \item \textbf{The Cell-Based Model:} A localised, dense-matrix approach that relies on Big-M transition constraints ot enforce valid ship geometry and prevent adjacency.
     \item \textbf{The Ship-Based Model:} A pre-processing, spare-matrix approach that utilises candidate generation and Edge-based Set Packing to resolve geometric conflicts.
