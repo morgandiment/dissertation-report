@@ -39,11 +39,33 @@ This chapter presents the results and evaluates them. Describe how the solution 
 % Evaluation setup: data, metrics, baselines, how experiments or tests were run.
 % Optional subsections: environment, hyperparameters, evaluation protocol.
 
+\subsection{Hardware and Environment}\label{hardware-environment}
+All evaluations were executed on a Macbook Air equipped with the Apple M3 processor and 16GB of RAM, running on macOS Sequoia 15.7.4. The underlying ILP solver utilised for all tests was the Gurobi Optimiser (Version 13.0.1). interfaced with the \verb|gurobipy| Python library.
+
+\subsection{Evaluation Metrics}\label{evaluation-metrics}
+Evaluating algorithmic efficiency solely using system time can be susceptible to hardware fluctuations and background operating system processes. To ensure a resilient evaluation, two main metrics were recorded for every puzzle instance:
+\begin{itemize}
+  \item \textbf{Solve Time (Seconds):} The total time required for Gurobi to return an optimal solution or declare the model infeasible.
+  \item \textbf{Node Count:} The total number of Branch-and-Bound nodes explored by the Gurobi solver. This provides a deterministic, hardware-independent metric of mathematical complexity. A node count of zero shows the puzzle was solved purely through heuristics, while a high node count shows the solver was forced to systematically guess and backtrack.
+\end{itemize}
+
+\subsection{Datasets and Test Scenarios}\label{datasets-test-scenarios}
+In order to thoroughly test the boundaries of the models, the evaluation was done in three main runs:
+\begin{enumerate}
+  \item \textbf{Cumulative and Scaling Performance:} A custom dataset of dynamically generated puzzles (\verb|scalable_puzzles.txt|) ranging from 5x5 to 15x15 grids was used to test how each model scales with exponentially increasing board sizes.
+  \item \textbf{Difficulty and Density Impact:} A standardised dataset of 10x10 puzzles from CSPLib was evaluated to determine how hint density (categorised in to Easy, Medium and Hard) impacts solver efficiency on a fixed grid size.
+  \item \textbf{Constraint Ablation:} To explicitly quantify the impact of the valid inequalities, the Improved Cell Model was subjected to an ablation study on Medium and Hard 10x10 instances, disabling one custom constraint at a time to measure its individual effect on the overall solve time.
+\end{enumerate}
+
 % \lipsum[27-28]
 
 \section{Results}\label{sec:results}
 % Main findings: present tables and figures; summarise key outcomes. Optional
 % subsections: by research question, by dataset, or by metric.
+
+% Cumulative performance - cactus plot. Ship model fastest, cell exponential curves
+% scaling behaviour and mathematical complexity - scaling line graph and nodes bar chart. side by side or stacked. Point out grid size where std cell model breaks. Show improved model suppresses node spike
+% Impact of valid inequalities - full constraint analysis table into here. Cuts comparison bar chart too. Highlight table state time saved on medium and acknowledge overhead on hard puzzles.
 
 % \lipsum[29-30]
 
@@ -51,9 +73,16 @@ This chapter presents the results and evaluates them. Describe how the solution 
 % Critical appraisal: strengths, weaknesses, methodology choices; comparison
 % with prior work. Optional: ablation analysis, sensitivity analysis.
 
+% the power of presolve - node counts for most puzzles are 0 or 1, gurobi internal presolve matrix reductions doing heavy lifting w/o needing search tree
+% ship v cell - why ship won (fewer constraints to generate as does whole ships, cell has cross checking constraints for every grid square)
+% medium v hard paradox - explain valid inequalities. medium has cuts successfully prune bad guesses and save time. Hard, heuristics already know answer so forcing gurobi to calc extra math cuts adds matrix math overheard
+
 % \lipsum[31-32]
 
 \section{Limitations}\label{sec:limitations}
 % Limitations, threats to validity, and suggested further tests if not all done.
+
+% Hardware limits? - capped at 15x15 but 30x20 exist. More computation to test at scale?
+% Solver bias - math complexity (nodecount) is tired to gurobi proprietary heuristics. testing on open source might yield different breaking point for models.
 
 % \lipsum[33-34]

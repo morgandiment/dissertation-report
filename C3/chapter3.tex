@@ -29,6 +29,37 @@ This chapter outlines the mathematical formulations of the two ILP models and th
 Before the modelling or coding of the system could begin, the rules of the puzzle and evaluation goals had to be formally defined.
 
 \subsection{Formal Problem Definition}\label{sec:formal-problem-definition}
+
+Battleship Solitaire is a single-player, deterministic logic puzzle played on a grid that represents an ocean. The objective is to discover the locations of the fleet of hidden ships.
+
+The solver is provided with row and column tallies which represent how many individual ship segments occupy that specific line. Additionally, a small set of hints (pre-revealed cells) is provided to anchor the search. 
+
+To solve the puzzle, the entire fleet must be placed onto the grid, such that all tallies are satisfied and no two ships touch each other, even diagonally. Figure 3.1 illustrates the transformation from an initial problem state to fully solved, feasible grid.
+
+% \begin{figure}[htbp]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{images/battleship_example.png}
+%     \caption{An example of a Battleship Solitaire puzzle. The initial unsolved state featuring the fleet, tallies and hints (left) must be logically resolved into the completed feasible board state (right) \citep{battleship-game-site}}
+%     \label{fig:battleship_example2}
+% \end{figure}
+
+\begin{figure}[t]
+  \centering
+  \begin{subfigure}[t]{0.45\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{images/unsolved_example.png} 
+    \subcaption{Initial puzzle state.}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[t]{0.45\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{images/solved_example.png}
+    \subcaption{Feasible solved state.}
+  \end{subfigure}
+  \caption[Battleship Solitaire Puzzle Example]{An example of a Battleship Solitaire puzzle. The solver must logically resolve the initial state (a) into the completed feasible board (b) while strictly adhering to the row and column tallies, hints and given fleet \citep{battleship-game-site}.}
+  \label{fig:battleship_example}
+\end{figure}
+
 The puzzle has many parameters that the solving algorithms have to process.
 
 \textbf{The Grid:} The puzzle is played on a square grid of size $N \times N$, which consists of cells defined by their position using row $i$ and column $j$ coordinates.
@@ -236,6 +267,49 @@ Rather than using complex transition logic like the Cell Model, this model build
 Hints are enforced by ensuring that exactly one candidate matching the hint is selected. Let $C_h$ be the subset of candidates that place the exact correct ship segment over the hint coordinate $h \in H$:
 \begin{equation}
     \sum_{c \in C_h} y_c = 1 \quad \forall h \in H
+\end{equation}
+
+\section{Valid Inequalities and Model Optimisation}\label{sec:valid_inequalities}
+
+Integer Linear Programming (ILP) solvers such as Gurobi, rely heavily on Branch-and-Bound algorithms to search solution space further from the logical constraints of the Battleship Puzzle.
+
+Four valid inequalities were engineered to improve computational efficiency and reduce the number of nodes the solver must explore. They were implemented into an Improved Cell-Based Model.
+
+These valid inequalities are mathematically redundant constraints as they do not alter the final feasible solution space, but they tighten the mathematical polytope to aid the solver.
+
+Let $I$ and $J$ represent the total number of rows and columns, respectively. Let $R_i$ be the given tally for row $i$, and $C_j$ be the tally for column $j$. The binary decision variable $x_{i,j}^k \in \{0, 1\}$ equals $1$ if cell $(i,j)$ contains piece type $k$, where $k \in \{W, S, M, L, R, T, B\}$ represents Water, Submarine, Middle, Left, Right, Top, and Bottom. 
+
+\subsection{Global Parity}
+Every horizontal ship of length two or greater must have exactly one left-end piece and one right-end piece. Similarly, every vertical ship must have exactly one top and one bottom piece. Therefore, the absolute sum of left pieces across the entire board must strictly equal the sum of right pieces.
+\begin{equation}
+    \sum_{i=1}^{I} \sum_{j=1}^{J} x_{i,j}^L = \sum_{i=1}^{I} \sum_{j=1}^{J} x_{i,j}^R
+\end{equation}
+\begin{equation}
+    \sum_{i=1}^{I} \sum_{j=1}^{J} x_{i,j}^T = \sum_{i=1}^{I} \sum_{j=1}^{J} x_{i,j}^B
+\end{equation}
+
+\subsection{Line-Specific Parity}
+Because ships cannot bend, a horizontal ship must be contained entirely within a single row. This allows the global parity logic to be scaled down to individual rows and columns, severely restricting the solver's branching options within localized areas.
+\begin{equation}
+    \sum_{j=1}^{J} x_{i,j}^L = \sum_{j=1}^{J} x_{i,j}^R \quad \forall i \in \{1, \dots, I\}
+\end{equation}
+\begin{equation}
+    \sum_{i=1}^{I} x_{i,j}^T = \sum_{i=1}^{I} x_{i,j}^B \quad \forall j \in \{1, \dots, J\}
+\end{equation}
+
+\subsection{Tally-Based Impossibilities}
+If a row's required ship segment tally is exactly one ($R_i = 1$), it cannot contain a horizontal ship end-piece (Left or Right), as placing either would imply a minimum horizontal ship length of two, thereby violating the tally limit. A symmetric logic applies to columns where $C_j = 1$.
+\begin{equation}
+    x_{i,j}^L = 0 \quad \text{and} \quad x_{i,j}^R = 0 \quad \forall j \in \{1, \dots, J\}, \text{ if } R_i = 1
+\end{equation}
+\begin{equation}
+    x_{i,j}^T = 0 \quad \text{and} \quad x_{i,j}^B = 0 \quad \forall i \in \{1, \dots, I\}, \text{ if } C_j = 1
+\end{equation}
+
+\subsection{Corner Banning}
+A ``Middle" piece ($M$) strictly requires two adjacent ship pieces on opposite sides (either horizontally or vertically). The four absolute corners of the grid only possess two orthogonal neighbours, making it mathematically impossible for a middle piece to occupy a corner cell.
+\begin{equation}
+    x_{1,1}^M = 0, \quad x_{1,J}^M = 0, \quad x_{I,1}^M = 0, \quad x_{I,J}^M = 0
 \end{equation}
 
 \section{Datasets and Dynamic Generation}\label{sec:datasets-dynamic-gen}
