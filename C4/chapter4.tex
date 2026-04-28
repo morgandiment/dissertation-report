@@ -140,9 +140,35 @@ However, on Hard puzzles (0.1432s baseline vs. 0.1472s all constraints), the heu
 % Critical appraisal: strengths, weaknesses, methodology choices; comparison
 % with prior work. Optional: ablation analysis, sensitivity analysis.
 
-% the power of presolve - node counts for most puzzles are 0 or 1, gurobi internal presolve matrix reductions doing heavy lifting w/o needing search tree
-% ship v cell - why ship won (fewer constraints to generate as does whole ships, cell has cross checking constraints for every grid square)
-% medium v hard paradox - explain valid inequalities. medium has cuts successfully prune bad guesses and save time. Hard, heuristics already know answer so forcing gurobi to calc extra math cuts adds matrix math overheard
+\subsection{The Algorithmic Paradigm Shift: Dense vs. Sparse Matrices}\label{algorithmic-paradigm-shift}
+The extreme difference in performance between the two models stems from how spatial constraints are formulated. The Cell-based model relies on dense Big-M transition logic, meaning that Gurobi has to continually cross-reference adjacent decision variables to enforce valid geometry. When the grid dimensions scale, the density of this constraint matrix explodes combinatorially.
+
+The Ship-based model bypasses those issues by abstracting the spatial reasoning out of the ILP matrix entirely. It leverages Python to pre-calculate the valid fleet geometry (Candidate Generation), the problem is reduced to an Edge-Based Set Packing formulation.
+
+The dominance of the Ship model (Figure~\ref{fig:baseline_performance} and Figure~\ref{fig:line_scaling}) conclusively demonstrates that reframing the mathematical paradigm from a localised, dense-matrix state problem, to a global spare-matrix edge-packing problem, yields considerably higher computational returns than micro-optimising a flawed initial model.
+
+\subsection{The Power of Presolve and Root-Node Relaxation}\label{power-of-presolve}
+The node complexity analysis (Figure~\ref{fig:node_complexity}) showed that for many instances, the Ship model solved complex instances while only exploring zero or one Branch-and-Bound nodes. This indicates that the Gurobi solver found the mathematical proof of the solution during its pre-processing phase (which consists of matrix reduction and root-node linear relaxation) before initiating a search tree.
+
+This highlights a weakness in the Cell model in that the Big-M formulations yield weak, highly fractional LP bounds.
+
+In contrast, the Set Packing matrices provide incredibly tight LP bounds. The constraints map to the problem well so Gurobi's internal heuristics can instantly deduce the optimal combination, while avoiding the branching that hindered the Cell model.
+
+\subsection{The "Overhead vs. Pruning" Paradox}\label{overhead-vs-pruning}
+The ablation study quantifying the impact of the valid inequalities (Figure~\ref{fig:cuts_comparison} and Table~\ref{tab:full_constraint_analysis}) revealed the "Overhead vs. Pruning" paradox inherent to discrete optimisation.
+
+For the Medium heuristic difficulty instances, the valid inequalities proved to be excellent additions as they successfully tightened the feasible polytope. They helped prune the dead-end branches from the search tree which in turn decreased the solve time.
+
+When looking at the Hard difficulty instances, the result is the opposite. The addition of the redundant constraints for every row/column lead to severe matrix bloat. The computational cost of calculating those extra equations during branching, outweighed the time saved by pruning nodes.
+
+This paradox highlights a fundamental trade-off in Integer Linear Programming. Polyhedral tightening is only beneficial to the solver if the time saved via the search-tree pruning exceeds the computational overhead of the expanded constraint matrix.
+
+\subsection{Trade-offs and Comparison with Prior Work}\label{tradeoffs-comparison-prior-work}
+While the underlying constraint equations were heavily adapted from the framework proposed by Meuffels \citep{meuffels-battleship}, this project advances that prior work by quantifying the absolute scaling limits of both models under combinatorial explosion.
+
+The evaluation unveiled a strict limitation of the Ship model. Its speed is achieved at the direct expense of spatial complexity. Due to the fact it pre-generates every possible candidate before Gurobi is invoked, memory consumption grows exponentially.  As grids scale towards larger boards, the Candidate Generation phase will eventually lead to a memory overflow. 
+
+Compare this to the Cell model, despite it being a lot slower, it has a much smaller static memory footprint. This establishes a definitive time-space trade-off: the Ship model dominates in processing speed, but the Cell model remains fundamentally more memory-efficient.
 
 % \lipsum[31-32]
 
