@@ -21,20 +21,18 @@
 
 % This chapter describes how the problem was addressed. Choose sections that fit your project type; omit or merge as needed. Replace with enough detail for reproduction.
 
-% \lipsum[9-10]
-
 This chapter outlines the mathematical formulations of the two ILP models and the software architecture designed to evaluate them.
 
 \section{Specification and Requirements}\label{sec:specification-and-requirements}
 Before the modelling or coding of the system could begin, the rules of the puzzle and evaluation goals had to be formally defined.
 
-\subsection{Formal Problem Definition}\label{sec:formal-problem-definition}
+\subsection{Formal Problem Definition}\label{subsec:formal-problem-definition}
 
 Battleship Solitaire is a single-player, deterministic logic puzzle played on a grid that represents an ocean. The objective is to discover the locations of the fleet of hidden ships.
 
 The solver is provided with row and column tallies which represent how many individual ship segments occupy that specific line. Additionally, a small set of hints (pre-revealed cells) is provided to anchor the search. 
-
-To solve the puzzle, the entire fleet must be placed onto the grid, such that all tallies are satisfied and no two ships touch each other, even diagonally. Figure 3.1 illustrates the transformation from an initial problem state to fully solved, feasible grid.
+ 
+To solve the puzzle, the entire fleet must be placed onto the grid, such that all tallies are satisfied and no two ships touch each other, even diagonally. Figure~\ref{fig:battleship_example} illustrates the transformation from an initial problem state to fully solved, feasible grid.
 
 % \begin{figure}[htbp]
 %     \centering
@@ -64,7 +62,7 @@ The puzzle has many parameters that the solving algorithms have to process.
 
 \textbf{The Grid:} The puzzle is played on a square grid of size $N \times N$, which consists of cells defined by their position using row $i$ and column $j$ coordinates.
 
-\textbf{The Fleet ($F$):} A predefined set of ship that must all be placed on the board to complete the puzzle. For example, the standard CSPLib fleet consists of a single Battleship (length 4), two Cruisers (length 3), three Destroyers (length 2) and four Submarines (length 1).
+\textbf{The Fleet ($F$):} A predefined set of ship that must all be placed on the board to complete the puzzle. The standard CSPLib fleet consists of a single Battleship (length 4), two Cruisers (length 3), three Destroyers (length 2) and four Submarines (length 1), the generated dataset fleet scales based off this.
 
 \textbf{The Tallies ($R$ and $C$):} Each row $i$ has a required sum $R_i$, and each column $j$ has a required sum $C_j$. These numbers represent the total number of ship segments that are present in that specific row or column.
 
@@ -76,7 +74,7 @@ The puzzle has many parameters that the solving algorithms have to process.
         \item 'm': Middle segment of a ship (length of 3 or larger)
     \end{itemize}
 
-\subsection{Logical Constraints (The Game Rules)}\label{sec:logical-constraints}
+\subsection{Logical Constraints (The Game Rules)}\label{subsec:logical-constraints}
 There are rules that the standard Battleship Solitaire game sticks to that also must be processed by the algorithms.
 
 \textbf{Tally Satisfaction:} The total number of ship segments in any row or column must match the corresponding tally.
@@ -90,12 +88,12 @@ There are rules that the standard Battleship Solitaire game sticks to that also 
 \textbf{Hint Adherence:} The completed board state must respect the initial hints provided in $H$.
 
 
-\subsection{Software System Requirements}\label{sec:software-sys-requirements}
+\subsection{Software System Requirements}\label{subsec:software-sys-requirements}
 These games rules were converted into software requirements, both functional and non-functional.
 
 \textbf{Functional Requirements}
 \begin{itemize}
-    \item \textbf{Parser Integration:} The system must be able to read and process the Prolog format used in the Constraint Satisfaction Problem Library (CSPLib).
+    \item \textbf{Parser Integration:} The system must be able to read and process the Prolog format used in the Constraint Satisfaction Problem Library (CSPLib) \citep{csplib:prob014}.
     \item \textbf{Solver Implementations:} The system must implement the two optimisation models using the Gurobi interface. One being the Cell-based method which uses Big-M boundary logic, and the other being the Ship-based model which uses candidate generation and set packing.
     \item \textbf{Dataset Generation:} As the existing datasets are limited, the system must have a generator capable of building valid puzzle instances at a varying number of hints and and dimensions.
     \item \textbf{Evaluation and Benchmarking:} The system must feature an evaluator that can run the two algorithms sequentially, record their execution times and output visualisations to aid analysis.
@@ -113,17 +111,17 @@ These games rules were converted into software requirements, both functional and
 
 The software was designed to be modular from the beginning. The mathematical optimisation engines are decoupled from the user interface and the evaluation pipelines, so things can run independently if needed.
 
-\subsection{Hardware and Execution Environment}\label{sec:hardware-execution-env}
+\subsection{Hardware and Execution Environment}\label{subsec:hardware-execution-env}
 
 Computational complexity (NP-Hardness) is bound by physical hardware limits, so first the hardware environment will be defined.
 
 The development, dataset generation and evaluation runs were executed on a 2024 Apple Macbook Air, using the M3 chip and 16GB of unified memory.
 
-The M3 provides high single-thread performance, which benefits Gurobi's branch-and-bound search tree used in the Cell model. The 16GB of memory will be the main limitation for the Ship model's candidate generation, once the grid reaches larger sizes of $15 \times 15$ and up.
+The M3 provides high single-thread performance, which benefits Gurobi's branch-and-bound search tree used in the Cell model. The 16GB of memory will be the main limitation for the Ship model's candidate generation, once the grid reaches larger sizes (e.g. $50 \times 50$ and higher).
 
 The operating system of the device is macOS Sequoia 15.7.4, which features strict thread-safety protocols.
 
-\subsection{Core System Modules}\label{core-sys-modules}
+\subsection{Core System Modules}\label{subsec:core-sys-modules}
 
 The architecture follows a modified Model-View-Controller (MVC) pattern, divided into four separate layers.
 
@@ -134,9 +132,9 @@ The architecture follows a modified Model-View-Controller (MVC) pattern, divided
     \item \textbf{The Evaluation Layer:} This module automates the generation of statistical evidence. It calculates solver speeds and shows them in comparison to puzzle difficulty (categorised by number of hints). Matplotlib is run headless to prevent macOS thread violations during batch runs, with the results being saved as \verb|.png| files.
 \end{enumerate}
 
-\subsection{System Data Flow}\label{sys-data-flow}
+\subsection{System Data Flow}\label{subsec:sys-data-flow}
 
-A quick step-by-step summary on how data moves through the system during a single puzzle solve using the GUI.
+A quick step-by-step summary on how data moves through the system during a single-puzzle solve using the GUI.
 \begin{enumerate}[label=\textbf{O\arabic*:}, leftmargin=*]
     \item \textbf{Input:} The user clicks grid cells to input the hints and types the corresponding tallies into the CustomTkinter GUI.
     \item \textbf{Translation:} The GUI compiles the visual input into a formatted CSPLib string and instantiates a BattleshipPuzzle object.
@@ -145,13 +143,11 @@ A quick step-by-step summary on how data moves through the system during a singl
     \item \textbf{Update:} The main thread reads the given coordinates and updates the cell on the GUI to reveal the solution to the user.
 \end{enumerate}
 
-% \lipsum[13-14]
-
 \section{Mathematical Formulation: The Cell-Based Model}\label{sec:math-formulation-cell}
 
 The Cell-based approach models the puzzles by treating the battleship grid as a matrix of individual squares. The solver then determines the state of each cell and applies localised boundary logic to ensure the fleet is formed correctly without breaking any of the game rules. The constraint equations are from Meuffels \citep{meuffels-battleship}.
 
-\subsection{Decision Variables}\label{cell-decision-variables}
+\subsection{Decision Variables}\label{subsec:cell-decision-variables}
 To capture the presence of a ship in a cell, and its specific shape, the cell-model uses a set of binary decision variables for every cell $(i, j)$ in the $N \times N$ grid.
 
 Let $S$ be the set of all possible cell states: $S = \{w, c, t, b, l, r, m\}$ representing Water, Circle (submarine), Top, Bottom, Left, Right and Middle respectively.
@@ -171,7 +167,7 @@ For convenience when calculating the row/column tallies, we define an auxiliary 
     x_{i,j} = 1 - v_{i,j}^w
 \end{equation}
 
-\subsection{Tally Constraints}\label{tally-constraints}
+\subsection{Tally Constraints}\label{subsec:tally-constraints}
 
 The most fundamental rule is the requirements of the sum of the ship segments in any row or column to perfectly match the provided tallies, $R_i$ and $C_j$. This is formulated as straight-forward linear summations:
 
@@ -185,7 +181,7 @@ The most fundamental rule is the requirements of the sum of the ship segments in
     \sum_{i=1}^{N} x_{i,j} = C_j \quad \forall j \in \{1 \dots N\}
 \end{equation}
 
-\subsection{Geometric and Non-Adjacency Constraints}\label{geo-and-non-adj-constraints}
+\subsection{Geometric and Non-Adjacency Constraints}\label{subsec:geo-and-non-adj-constraints}
 
 These constraints are what cause the Cell Model to become computationally expensive. The solver must use dense conditional logic to prevent any ship from touching.
 
@@ -211,13 +207,11 @@ Any pre-revealed hints provided in the set $H$ are enforced through bounding the
     v_{i,j}^k = 1
 \end{equation}
 
-% \lipsum[15-16]
-
 \section{Mathematical Formulation: The Ship-Based Model}\label{sec:math-formulation-ship}
 
 The ship-based solver works by generating every valid ship placement upfront and ask the solver to pick the correct combination of ships from the selection, instead of working cell-by-cell. The constraint equations are from Meuffels \citep{meuffels-battleship}.
 
-\subsection{Pre-Processing and Candidate Generation}\label{pre-proc-and-candidate-gen}
+\subsection{Pre-Processing and Candidate Generation}\label{subsec:pre-proc-and-candidate-gen}
 
 Before the optimisation matrix is built, a pre-processing algorithm traverses the grid to generate the complete set of valid ship candidates, $C$.
 
@@ -225,7 +219,7 @@ A candidate $c \in C$ represents a ship of length L placed at specific coordinat
 
 No candidate is generated on cells known to be water (from the hint set $H$), and no candidate is generated if it would intersect a row $i$ where $R_i = 0$, or a column $j$ where $C_j = 0$.
 
-\subsection{Decision Variables}\label{ship-decision-variables}
+\subsection{Decision Variables}\label{subsec:ship-decision-variables}
 
 The model only requires a single, one-dimensional array of binary decision variables as the geometry is pre-calculated.
 
@@ -234,7 +228,7 @@ Let $y_c \in \{0, 1\}$, 1 if candidate $c$ is selected for the final board state
     y_c \in \{0, 1\} \quad \forall c \in C
 \end{equation}
 
-\subsection{Fleet and Tally Constraints}\label{fleet-and-tally-constraints}
+\subsection{Fleet and Tally Constraints}\label{subsec:fleet-and-tally-constraints}
 
 The model must fulfill the exact fleet specification and the discrete tomography tallies provided.
 
@@ -253,7 +247,7 @@ Let $a_{i,c}$ represent the number of segments candidate $c$ occupies in row $i$
     \sum_{c \in C} b_{j,c} y_c = C_j \quad \forall j \in \{1 \dots N\}
 \end{equation}
 
-\subsection{Edge-Based Set Packing (Conflict Constraints)}\label{edge-based-set-packing}
+\subsection{Edge-Based Set Packing (Conflict Constraints)}\label{subsec:edge-based-set-packing}
 This is where the Ship Model finds its speed, as Gurobi deals with sparse matrices with extreme efficiency. Due to the fact ships cannot overlap or touch diagonally/adjacently, many of the candidates are mutually exclusive.
 
 Rather than using complex transition logic like the Cell Model, this model builds a Conflict Graph. This is formulated as a highly sparse Edge-Packing constraint. Let $E$ be the set of all edges representing a conflict between two candidates. Two candidates, $u$ and $v$, conflict if they overlap or touch:
@@ -261,9 +255,7 @@ Rather than using complex transition logic like the Cell Model, this model build
     y_u + y_v \leq 1 \quad \forall (u, v) \in E
 \end{equation}
 
-% \lipsum[17-18]
-
-\subsection{Hint Adherence}\label{hint-adherance}
+\subsection{Hint Adherence}\label{subsec:hint-adherance}
 Hints are enforced by ensuring that exactly one candidate matching the hint is selected. Let $C_h$ be the subset of candidates that place the exact correct ship segment over the hint coordinate $h \in H$:
 \begin{equation}
     \sum_{c \in C_h} y_c = 1 \quad \forall h \in H
@@ -279,7 +271,7 @@ These valid inequalities are mathematically redundant constraints as they do not
 
 Let $I$ and $J$ represent the total number of rows and columns, respectively. Let $R_i$ be the given tally for row $i$, and $C_j$ be the tally for column $j$. The binary decision variable $x_{i,j}^k \in \{0, 1\}$ equals $1$ if cell $(i,j)$ contains piece type $k$, where $k \in \{W, S, M, L, R, T, B\}$ represents Water, Submarine, Middle, Left, Right, Top, and Bottom. 
 
-\subsection{Global Parity}
+\subsection{Global Parity}\label{subsec:global-parity}
 Every horizontal ship of length two or greater must have exactly one left-end piece and one right-end piece. Similarly, every vertical ship must have exactly one top and one bottom piece. Therefore, the absolute sum of left pieces across the entire board must strictly equal the sum of right pieces.
 \begin{equation}
     \sum_{i=1}^{I} \sum_{j=1}^{J} x_{i,j}^L = \sum_{i=1}^{I} \sum_{j=1}^{J} x_{i,j}^R
@@ -288,7 +280,7 @@ Every horizontal ship of length two or greater must have exactly one left-end pi
     \sum_{i=1}^{I} \sum_{j=1}^{J} x_{i,j}^T = \sum_{i=1}^{I} \sum_{j=1}^{J} x_{i,j}^B
 \end{equation}
 
-\subsection{Line-Specific Parity}
+\subsection{Line-Specific Parity}\label{subsec:line-specific-parity}
 Because ships cannot bend, a horizontal ship must be contained entirely within a single row. This allows the global parity logic to be scaled down to individual rows and columns, severely restricting the solver's branching options within localized areas.
 \begin{equation}
     \sum_{j=1}^{J} x_{i,j}^L = \sum_{j=1}^{J} x_{i,j}^R \quad \forall i \in \{1, \dots, I\}
@@ -297,7 +289,7 @@ Because ships cannot bend, a horizontal ship must be contained entirely within a
     \sum_{i=1}^{I} x_{i,j}^T = \sum_{i=1}^{I} x_{i,j}^B \quad \forall j \in \{1, \dots, J\}
 \end{equation}
 
-\subsection{Tally-Based Impossibilities}
+\subsection{Tally-Based Impossibilities}\label{subsec:tally-based-impossibilities}
 If a row's required ship segment tally is exactly one ($R_i = 1$), it cannot contain a horizontal ship end-piece (Left or Right), as placing either would imply a minimum horizontal ship length of two, thereby violating the tally limit. A symmetric logic applies to columns where $C_j = 1$.
 \begin{equation}
     x_{i,j}^L = 0 \quad \text{and} \quad x_{i,j}^R = 0 \quad \forall j \in \{1, \dots, J\}, \text{ if } R_i = 1
@@ -306,7 +298,7 @@ If a row's required ship segment tally is exactly one ($R_i = 1$), it cannot con
     x_{i,j}^T = 0 \quad \text{and} \quad x_{i,j}^B = 0 \quad \forall i \in \{1, \dots, I\}, \text{ if } C_j = 1
 \end{equation}
 
-\subsection{Corner Banning}
+\subsection{Corner Banning}\label{subsec:corner-banning}
 A ``Middle" piece ($M$) strictly requires two adjacent ship pieces on opposite sides (either horizontally or vertically). The four absolute corners of the grid only possess two orthogonal neighbours, making it mathematically impossible for a middle piece to occupy a corner cell.
 \begin{equation}
     x_{1,1}^M = 0, \quad x_{1,J}^M = 0, \quad x_{I,1}^M = 0, \quad x_{I,J}^M = 0
@@ -316,15 +308,15 @@ A ``Middle" piece ($M$) strictly requires two adjacent ship pieces on opposite s
 
 To evaluate the scalability and computational efficiency of the ILP models, a robust dataset was required. A hybrid approach was adopted because publicly available datasets are limited to standard grid sizes. A standard library was utilised for baseline validation, and a customer generator utilised for scalability testing.
 
-\subsection{Standard Academic Dataset (CSPLib)}\label{standard-academic-dataset}
+\subsection{Standard Academic Dataset (CSPLib)}\label{subsec:standard-academic-dataset}
 
-To ensure the solvers were mathematically sound and could replicate known academic benchmarks, the system was engineered to ingest data from the Constraint Satisfaction Problem Library (CSPLib), specifically Problem 014 (Solitaire Battleships).
+To ensure the solvers were mathematically sound and could replicate known academic benchmarks, the system was engineered to ingest data from the Constraint Satisfaction Problem Library (CSPLib), specifically Problem 014 (Solitaire Battleships) \citep{csplib:prob014}.
 
 Standard CSPLib files are formatted as Prolog strings. A custom Regular Expression (Regex) pipeline was implemented to parse these strings, extracting the grid dimensions, fleet specification, row/column tallies and the provided hints.
 
 By successfully solving the instances provided in the CSPLib dataset, the models were validated against ground-truth configurations before custom data was introduced.
 
-\subsection{Procedural Puzzle Generation Algorithm}\label{procedural-puzzle-gen-algo}
+\subsection{Procedural Puzzle Generation Algorithm}\label{subsec:procedural-puzzle-gen-algo}
 The evaluation of the models required puzzles of varying dimensions to test against the limits of combinatorial expansion. Battleship Solitaire puzzles cannot simply be randomised, so an algorithm was engineered that builds the puzzles in reverse to ensure they are feasible.
 
 \begin{enumerate}[label=\textbf{O\arabic*:}, leftmargin=*]
@@ -335,9 +327,9 @@ The evaluation of the models required puzzles of varying dimensions to test agai
     \item  Finally, the algorithm randomly selects a predetermined number of cells to act as pre-revealed hints, then outputs the complete puzzle object for the solvers to evaluate.
 \end{enumerate}
 
-\subsection{Controlling Scalability and Heuristic Difficulty}\label{controlling-scalability-heuristic-diff}
+\subsection{Controlling Scalability and Heuristic Difficulty}\label{subsec:controlling-scalability-heuristic-diff}
 
-Puzzles were generated at progressively larger dimensions (6x6, 8x8, 10x10, 12x12, and 15x15). This was critical for observing the exponential time complexity ($O(2^n)$) inherent to NP-Complete problems, in particular tracking when the Ship Model's memory requirements for candidate generation exceeds system limits.
+Puzzles were generated at progressively larger dimensions (10x10, 12x12, 15x15, 20x20, 25x25 and 30x30). This was critical for observing the exponential time complexity ($O(2^n)$) inherent to NP-Complete problems, in particular tracking when the Ship Model's memory requirements for candidate generation exceeds system limits.
 
 The difficulty of a Solitaire Battleship instance is largely dictated by the number of starting hints. These hints act as anchors that prune the search tree. The less hints, the more the solver relies on the row/column tallies. The generator produced datasets categorised by hint density:
 \begin{itemize}
@@ -346,14 +338,12 @@ The difficulty of a Solitaire Battleship instance is largely dictated by the num
     \item \textbf{Hard:} 0--3 hints.
 \end{itemize}
 
-% \lipsum[19-20]
-
 \section{Implementation}\label{sec:impl}
 % Realisation: key implementation choices and critical code; avoid describing every module. Optional: tools, platform, problems encountered.
 
-The models and architecture described in the previous sections were implemented using Python 3, chosen for its robust object-orientated capabilities and native integration with optimisation libraries. The core mathematical optimisation was handled by the gurobipy API, interfacing directly with the Gurobi Optimiser backend. 
+The models and architecture described in the previous sections were implemented using Python 3, chosen for its robust object-orientated capabilities and native integration with optimisation libraries. The core mathematical optimisation was handled by the \verb|gurobipy| API, interfacing directly with the Gurobi Optimiser backend. 
 
-\subsection{Data Structures and Parsing}\label{data-structures-parsing}
+\subsection{Data Structures and Parsing}\label{subsec:data-structures-parsing}
 A central \verb|BattleshipPuzzle| class was implemented to encapsulate the grid dimensions, fleet specification, tallies and hints. This prevented the passing of raw arrays between functions.
 
 To ensure compatibility with standard academic datasets, a custom parsing module was implemented. The CSPLib datasets store problem instances as Prolog strings. A Regular Expression (Regex) pipeline was engineered (with syntax assistance from \citet{gemini}) to extract these parameters:
@@ -369,7 +359,7 @@ To ensure compatibility with standard academic datasets, a custom parsing module
 \end{verbatim}
 This decoupling ensured that regardless of how the problem was loaded, the Gurobi solvers received an identical, standardised object.
 
-\subsection{Mapping ILP Constraints in Gurobi}\label{mapping-ilp-constraints-gurobi}
+\subsection{Mapping ILP Constraints in Gurobi}\label{subsec:mapping-ilp-constraints-gurobi}
 A key implementation challenge was accurately translating the formal mathematical equations into Gurobi's Python API.
 
 For the Cell Model, this involved instantiating a multi-dimensional array of binary decision variables using \verb|model.addVars()|, indexing them by row, column and cell state. The transition logic (Big-M constraints) was enforced using localised loops:
@@ -384,10 +374,10 @@ The Ship Model implementation heavily relied on Python's pre-processing capabili
     model.addConstr(y[u] + y[v] <= 1)
 \end{verbatim}
 
-\subsection{Platform Challenges: Thread Safety and Concurrency}\label{platform-challenges-thread-safety}
+\subsection{Platform Challenges: Thread Safety and Concurrency}\label{subsec:platform-challenges-thread-safety}
 A notable engineering problem was encountered during the development of the CustomTkinter Graphical User Interface on macOS.
 
-Due to the fact that the complex matrices used in solving the Solitaire Battleship instances is computationally intensive, executing the gurobipy optimiser on the main application thread caused the interface to freeze. 
+Due to the fact that the complex matrices used in solving the Solitaire Battleship instances is computationally intensive, executing the \verb|gurobipy| optimiser on the main application thread caused the interface to freeze. 
 
 The standard solution of running the solver on an asynchronous background thread resulted in fatal system crashes (\verb|NSInternalInconsistencyException|). This occurred because macOS strictly prohibits background threads from directly modifying UI components or terminal outputs.
 
@@ -396,9 +386,8 @@ The solution that worked (identified through troubleshooting with \citet{gemini}
     def write(self, text):
         self.textbox.after(0, self._insert_text, text)
 \end{verbatim} 
-% \lipsum[21-22]
 
-\subsection{Headless Evaluation}\label{headless-evaluation}
+\subsection{Headless Evaluation}\label{subsec:headless-evaluation}
 To facilitate the automated evaluation of hundreds of problems without triggering similar window manager exceptions, the Matplotlib visualisation library was configured to operate in 'headless' mode, with the use of \verb|matplotlib.use('Agg')|.
 
 The system saves the plots to the device's storage, allowing much faster batch evaluations.
@@ -419,4 +408,3 @@ Two distinct optimisation paradigms were successfully formulated using the Gurob
 \end{itemize}
 
 The following chapter will subject both models to empirical testing, using the constraints and evaluation pipeline defined.
-% \lipsum[23-24]
