@@ -192,7 +192,7 @@ While the evaluation framework yielded definitive comparative results, several l
 \subsection{Hardware and Memory Ceilings}\label{subsec:hardware-memory-ceilings}
 The main limitation of the evaluation is the absolute hardware ceiling of the testing environment. Initially, it was hypothesised that the testing hardware (16GB of Unified Memory) would fail on instances larger than 15x15 due to the Ship model's space complexity. 
 
-However, the evaluation successfully scaled to massive 30x30 board configurations, with the Ship model solving in under 2 seconds, while the Cell model experienced severe root-node stalling, taking upwards of 25 seconds for hard instances. 
+However, the evaluation successfully scaled to massive 30x30 board configurations, with the Ship model solving in under 2 seconds, while the Cell model experienced severe root-node stalling, taking upwards of 23 seconds for hard instances. 
 
 Therefore, the true hardware limitation lies in grid sizes that are not standard human-playable. But instead, in larger grids (e.g. 50x50) where the Ship's model candidate dictionary would finally exceed the 16GB physical memory limit.
 
