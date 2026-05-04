@@ -18,7 +18,7 @@
 % Optional subsections: environment, hyperparameters, evaluation protocol.
 
 \subsection{Hardware and Environment}\label{subsec:hardware-environment}
-All evaluations were executed on a Macbook Air equipped with the Apple M3 processor and 16GB of RAM, running on macOS Sequoia 15.7.4. The underlying ILP solver utilised for all tests was the Gurobi Optimiser (Version 13.0.1). interfaced with the \verb|gurobipy| Python library.
+All evaluations were executed on a Macbook Air equipped with the Apple M3 processor and 16GB of RAM, running on macOS Sequoia 15.7.4. The underlying ILP solver utilised for all tests was the Gurobi Optimiser (Version 13.0.1) \citep{gurobi2024}, interfaced with the \verb|gurobipy| Python library.
 
 \subsection{Evaluation Metrics}\label{subsec:evaluation-metrics}
 Evaluating algorithmic efficiency solely using system time can be susceptible to hardware fluctuations and background operating system processes. To ensure a resilient evaluation, two main metrics were recorded for every puzzle instance:
@@ -160,7 +160,7 @@ The extreme difference in performance between the two models stems from how spat
 
 The Ship-based model bypasses those issues by abstracting the spatial reasoning out of the ILP matrix entirely. It leverages Python to pre-calculate the valid fleet geometry (Candidate Generation), the problem is reduced to an Edge-Based Set Packing formulation.
 
-The dominance of the Ship model (Figure~\ref{fig:baseline_performance} and Figure~\ref{fig:line_scaling}) conclusively demonstrates that reframing the mathematical paradigm from a localised, dense-matrix state problem, to a global spare-matrix edge-packing problem, yields considerably higher computational returns than micro-optimising a flawed initial model.
+The dominance of the Ship model (Figure~\ref{fig:baseline_performance} and Figure~\ref{fig:line_scaling}) conclusively demonstrates that reframing the mathematical paradigm from a localised, dense-matrix state problem, to a global sparse-matrix edge-packing problem, yields considerably higher computational returns than micro-optimising a flawed initial model.
 
 \subsection{The Power of Presolve and Root-Node Relaxation}\label{subsec:power-of-presolve}
 The node complexity analysis (Figure~\ref{fig:node_complexity}) revealed an unexpected phenomenon: all models, including the slow Cell models, frequently solved complex 30x30 instances while exploring zero or one Branch-and-Bound nodes. 

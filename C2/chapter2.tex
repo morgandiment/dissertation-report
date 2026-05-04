@@ -21,9 +21,9 @@ This project is focussing on the game known as Battleship Solitaire. There is a 
 
 Battleship Solitaire is a deterministic logic puzzle, that players solve using the given hints and tallies provided on the rows and columns. It is a pure application of Discrete Tomography, which is the mathematical study of constructing a geometric object from its projections.
 
-Solving discrete tomography isn't just for puzzles, it has real-world applications, mainly in medical imaging (such as MRI/CT scans), scheduling, and VLSI microchip design.
+Solving discrete tomography isn't just for puzzles, it has real-world applications, mainly in medical imaging (such as MRI/CT scans), scheduling, and VLSI microchip design \citep{herman1999discrete}.
 
-From a computational complexity perspective, Battleship Solitaire is formally classified as an NP-Complete problem. This classification indicates that as the grid dimensions ($N \times N$) scale, the state space of valid fleet configurations undergoes combinatorial explosion. For NP-Complete problems, no known algorithm can guarantee a solution in polynomial time. Instead, all deterministic algorithms currently available exhibit exponential time complexity ($O(2^n)$) in the worst-case scenario.
+From a computational complexity perspective, Battleship Solitaire is formally classified as an NP-Complete problem \citep{sevenster2004battleships}, a class of problems first formalised by Karp~\citep{karp1972reducibility}. This classification indicates that as the grid dimensions ($N \times N$) scale, the state space of valid fleet configurations undergoes combinatorial explosion. For NP-Complete problems, no known algorithm can guarantee a solution in polynomial time. Instead, all deterministic algorithms currently available exhibit exponential time complexity ($O(2^n)$) in the worst-case scenario.
 
 A guaranteed polynomial-time algorithm for Battleship Solitaire would only be possible if it were mathematically proven that $P = NP$, which remains one of the most profound open problems in theoretical computer science. Because worst-case exponential scaling is unavoidable under current theoretical constraints, computational research instead must focus on the average-case performance.
 
@@ -39,7 +39,9 @@ CP uses domain reduction to cross out infeasible values for each square in a puz
 
 The foundation literature for this project is the ILP formulations proposed by Meuffels \citep{meuffels-battleship}. He demonstrated that it is possible to conceptualise two distinct ways to translate the Battleship Solitaire puzzle into ILP mathematical models. The paper defines the cell-based and ship-based approaches, but lacks extensive testing and scaling of the problems they solve. This project aims to turn these models into a solution written in the modern day, with testing completed that pushes the boundaries of combinatorial algorithms to understand them further.
 
-This project uses the Gurobi Optimiser \footnote{Available at \url{https://www.gurobi.com/product}}, which is the industry standard for solving optimisation problems. 
+Literature written by \citet{sevenster2004battleships} also goes into Battleships as a decision problem.
+
+This project uses the Gurobi Optimizer \citep{gurobi2024}, which is the industry standard for solving optimisation problems. 
 
 The project also uses CSPLib \citep{csplib:prob014}, which contains many constraint problem datasets. Allowing the solver to read the format provided by CSPLib means the research is reproducible.
 

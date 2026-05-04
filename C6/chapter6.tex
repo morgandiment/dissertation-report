@@ -12,7 +12,7 @@
 % comment out the \chapter and \input in main.tex.
 % =============================================================================
 
-This chapter reflects on what was learned from the project: how assumptions and decisions were re-evaluated and what would be done differently in future.
+% This chapter reflects on what was learned from the project: how assumptions and decisions were re-evaluated and what would be done differently in future.
 
 % Talk about this:
 % Applying double-loop learning to my methodology, my initial assumption was that an algorithm's slowness was always caused by a massive Branch-and-Bound search tree. 
@@ -22,11 +22,33 @@ This chapter reflects on what was learned from the project: how assumptions and 
 \section{Critical narrative of the experience}\label{sec:challenges}
 % Key challenges, turning points, and how they affected your understanding.
 
+The development of this dissertation was an iterative and highly challenging process that required a continuous refinement of scope and engineering practice. 
+
+During the initial evaluator test runs in mid-March, early outputs from the solver revealed that my testing parameters were too broad and unstructured. Here I realised that I needed to stop treating the evaluation as a single experiment, and to focus on isolating variables to draw clean comparisons. The two specific variables were the impact of heuristic hint density on a static grid, and the absolute scalability limits of the mathematical models under combinatorial expansion. 
+
+Beyond the theoretical challenges, the practical implementation presented severe engineering hurdles. The most critical point of failure occurred during the development of the CustomTkinter Graphical User Interface. Integrating the computationally intense Gurobi optimizer into the application caused the user interface to freeze. The goal for the user interface was to be fast and interactive, so from this issue needed rectifying as soon as possible.
+
+My initial attempt to resolve this by offloading the solver to an asynchronous background thread resulted in fatal \verb|NSInternalInconsistencyException| crashes. I quickly learned that macOS enforces strict thread-safety protocols, actively terminating background threads that attempt to directly update UI components or terminal outputs. Overcoming this crisis required engineering a thread-safe event queue utilizing a decoupled \verb|TextboxRedirector| and the \verb|tkinter.after()| loop. This hurdle transformed a simple UI task into a tough lesson in thread affinity and event loop discipline in UI frameworks.
 
 \section{Analysis and application}\label{sec:reflection}
 % How you analysed the experience and applied learning to decisions or concepts.
 
+Reflecting on the optimization aspect of this project, the lesson learned was that a mathematically elegant constraint is actively harmful if the CPU overhead required to calculate it outweighs the time saved by pruning the search tree.
+
+Looking through the lens of Argyris' concept of ``double-loop learning'', I was forced to re-evaluate my foundational assumptions about algorithmic efficiency. At the outset of this project, my mental model of Integer Linear Programming (ILP) was straightforward: I assumed that the speed of a solver was exclusively tied to the size of its Branch-and-Bound search tree. Consequently, my core assumption was that adding more mathematical constraints (tightening the polytope via Valid Inequalities) would inherently speed up the solver by pruning dead-end branches.
+
+The data from the constraint ablation study disregarded this assumption. While the valid inequalities successfully reduced the node count to near zero, they actively slowed down the solver on Hard difficulties. I had to reconstruct my understanding of computational complexity to grasp the ``Overhead vs. Pruning'' paradox. I learned that ILP efficiency is largely dictated by root-node Linear Programming (LP) relaxations and matrix sparsity.
+
+By trying to force Gurobi to process redundant parity equations for every row and column in the Cell model, I was introducing massive matrix bloat.
 
 \section{Implications for future practice}\label{sec:implications}
 % What you will take forward: habits, assumptions, or approaches in future work.
+
+The shift in perspective achieved during this project will profoundly influence my future practice as a software engineer and computer scientist.
+
+Firstly, the macOS thread-safety crisis highlighted the necessity of designing thread boundaries prior to writing UI code. In future software projects involving long-running computation behind an interactive front-end, I will design with the event queue, the background-worker contract, and the UI-thread marshalling boundary as first-class architectural concerns from the outset, rather than retrofitting them when concurrency issues inevitably arise.
+
+Finally, I will not trust an elegant theoretical result until I have thoroughly validated it. The valid inequalities ablation taught me that mathematical correctness and practical performance are different questions, and being able to distinguish from them is part of doing precise research.
+
+In future optimization problems, my primary focus will not be on how to write the most complex solving algorithm, but rather on how to pre-process and structure the data so that the underlying computational engine can process it with minimal friction. This project has taught me that often the most effective way to solve a complex problem is to reframe it.
 

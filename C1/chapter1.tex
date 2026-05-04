@@ -51,15 +51,9 @@ To achieve this aim successfully, the project will have the following objectives
 \begin{enumerate}[label=\textbf{O\arabic*:}, leftmargin=*]
   \item To define and implement two ILP formulations for the Battleship ruleset. The first being a Cell-based (Big-M) constraint model, and the second a Ship-based (Set Packing) candidate model.
   \item To engineer a scalable, automated evaluation environment that integrates a puzzle generator, a standard CSPLib format parser, and the Gurobi optimisation engine to facilitate standardised solver benchmarking.
-  \item To construct a decoupled graphical user interface (GUI), that utilises a Model-View-Controller architecture. Allowing for the real-time visualisation of solver outputs and the interactive construction of problems.
+  \item To construct a decoupled graphical user interface (GUI), built on a layered architecture with thread-safe message passing between a Gurobi background solver and the CustomTkinter front-end, allowing for the real-time visualisation of solver outputs and the interactive construction of problems.
   \item To conduct a systematic evaluation comparing the computational overhead, search-tree pruning efficiency, and scalability limits of the formulated ILP encodings against datasets of varying heuristic difficulty and grid dimensions. 
 \end{enumerate}
-
-% When you need mathematics, use amsmath and mathtools. Example:
-% \begin{equation}\label{eq:example}
-%   E = mc^2, \qquad \int_0^1 f(x)\,\mathrm{d}x = F(1) - F(0).
-% \end{equation}
-% Refer as Equation~\eqref{eq:example}; inline math: $\alpha + \beta = \gamma$. Paired delimiters (mathtools): \DeclarePairedDelimiter{\abs}{\lvert}{\rvert} then $\abs{x}$, $\abs*{\frac{1}{2}}$. Chemistry (mhchem): \ce{H2O}, \ce{CO2}, \ce{^1H-NMR}. Units (siunitx): \SI{3.0}{m/s}, \num{1234} samples. Symbols: \textdegree, \textcopyright; dingbats (pifont): \ding{51} \ding{43}. Relative size (relsize): \textlarger{larger} \textsmaller{smaller}.
 
 % -----------------------------------------------------------------------------
 % Contributions (typical third section)
@@ -72,112 +66,9 @@ This dissertation presents a comprehensive algorithmic analysis of Integer Linea
 \begin{itemize}
   \item \textbf{Automated Evaluation Pipeline and Generator:} The development of a robust Python framework capable of parsing standard CSPLib Prolog datasets, alongside a dynamic puzzle generator designed to create mathematically valid instances up to 30x30 in size for scalability analysis.
   \item \textbf{Comparative ILP Formulations:} The formal mathematical specification and Gurobi implementation of two distinct solver paradigms: a Cell-based model utilizing Big-M boundary constraints, and a Ship-based model employing candidate generation and Edge-Based Set Packing.
-  \item \textbf{Constraint Impact Analysis and Tuning:} A Constraint Impact Analysis revealed the 'Overhead vs. Pruning' trade-off, demonstrating that while explicit corner-banning reduced solve times on hard instances by pruning dead-end search branches, redundant parity constraints introduced matrix bloat affected performance in certain conditions.
-  \item \textbf{Scalability and Performance Discovery:} Conclusive evidence demonstrating that the Ship-based Set Packing formulation strictly dominates the Cell-based approach. The Ship model maintains an immense speed advantage, efficiently solving 30x30 zero-hint instances in under 2 seconds, where the Cell model severely weakens, taking upwards of 23 seconds.
+  \item \textbf{Constraint Impact Analysis and Tuning:} A Constraint Impact Analysis revealed the 'Overhead vs. Pruning' trade-off, demonstrating that while explicit tally logic reduced solve times on hard instances by pruning dead-end search branches, redundant parity constraints introduced matrix bloat affected performance in certain conditions.
+  \item \textbf{Scalability and Performance Discovery:} Conclusive evidence demonstrating that the Ship-based Set Packing formulation strictly dominates the Cell-based approach. The Ship model maintains an immense speed advantage, efficiently solving 30x30 zero-hint instances in under 2 seconds, where the Cell model severely weakens, taking an average of \textasciitilde\SI{14}{\second}.
 \end{itemize}
-
-% \epigraph{The best way to predict the future is to invent it.}{Alan Kay}
-
-% Summarise the main contributions of the dissertation. You can use a short list and refer to a figure or table. The class provides restyled \texttt{quote} and \texttt{quotation} environments (smaller type, indents):
-
-% \begin{quotation}
-%   A short quotation: replace with a real citation or excerpt. Use \verb|\begin{quotation}| \verb|...| \verb|\end{quotation}| for indented, smaller text. For a shorter block use \verb|\begin{quote}| \verb|...| \verb|\end{quote}|.
-% \end{quotation}
-
-% \begin{quote}
-%   A single-line quote: \verb|\begin{quote}...\end{quote}| gives a shorter block with smaller type (class restyle).
-% \end{quote}
-
-% The class also restyles \verb|\begin{verse}...\end{verse}| for short verse or poetry (centred lines, smaller type):
-% \begin{verse}
-%   Line one.\\
-%   Line two.\\
-%   Line three.
-% \end{verse}
-
-% \begin{itemize}
-%   \item First contribution; replace with your own.
-%   \item Second contribution.
-% \end{itemize}
-
-% Figure~\ref{fig:demo} shows how to include a figure (graphicx, caption; optional short caption for the List of Figures). Float placement: \texttt{[t]} = top of page (default here); \texttt{[htbp]} = here, top, bottom, float page; \texttt{[!t]} = relax limits and prefer top. See the ``Float placement'' comment block in \texttt{main.tex}. \texttt{[H]} (float package) only when you must force ``here'' (can cause uneven spacing). Subfigures (subcaption): see Figure~\ref{fig:sub}.
-
-% \begin{figure}[t]
-%   \centering
-%   \fbox{\rule{0pt}{4cm}\rule{4cm}{0pt}}
-%   \caption[Short for list of figures]{Full caption. Optional argument used in List of Figures.}\label{fig:demo}
-% \end{figure}
-
-% \begin{figure}[t]
-%   \centering
-%   \begin{subfigure}[t]{0.45\linewidth}
-%     \centering
-%     \fbox{\rule{0pt}{2cm}\rule{2cm}{0pt}}
-%     \subcaption{First subfigure.}
-%   \end{subfigure}
-%   \hfill
-%   \begin{subfigure}[t]{0.45\linewidth}
-%     \centering
-%     \fbox{\rule{0pt}{2cm}\rule{2cm}{0pt}}
-%     \subcaption{Second subfigure.}
-%   \end{subfigure}
-%   \caption{Example with subcaption (a) and (b).}
-%   \label{fig:sub}
-% \end{figure}
-
-% % Full-width figure: requires class option \texttt{fullwidth}. If you remove that option, comment out this block.
-% \begin{fullwidthfigure}[t]
-%   \fbox{\rule{0pt}{2.5cm}\rule{\linewidth}{0pt}}
-%   \caption[Full-width figure]{Full-width figure example. Use \texttt{\string
-%     \begin{fullwidthfigure}[t]}...\texttt{\string
-%   \end{fullwidthfigure}} when the class option \texttt{fullwidth} is set.}\label{fig:fullwidth}
-% \end{fullwidthfigure}
-
-% % Full-width block (not a float): extends into margin. Requires class option \texttt{fullwidth}; comment out if not set.
-% \begin{fullwidth}
-%   This paragraph is in \verb|\begin{fullwidth}...\end{fullwidth}|: block content that extends into the left and right margins (e.g.\@ for wide tables or key points).
-% \end{fullwidth}
-
-% Tables: use \texttt{booktabs} (\verb|\toprule|, \verb|\midrule|, \verb|\bottomrule|) (Table~\ref{tab:booktabs}), or \texttt{tabularray} with \texttt{tblr} / \texttt{longtable} for flexible or multi-page tables (Table~\ref{tab:demo}, Table~\ref{tab:long}). Same placement options as figures (\texttt{[t]}, \texttt{[!t]}, \texttt{[htbp]}, etc.).
-
-% \begin{table}[t]
-%   \centering
-%   \caption{Example table (booktabs, Tufte-style).}
-%   \label{tab:booktabs}
-%   \begin{tabular}{lcc}
-%     \toprule
-%     Item   & Value A & Value B \\
-%     \midrule
-%     First  & 1.0     & 2.0    \\
-%     Second & 3.0     & 4.0    \\
-%     \bottomrule
-%   \end{tabular}
-% \end{table}
-
-% \begin{table}[t]
-%   \centering
-%   \caption{Example table (tabularray).}
-%   \label{tab:demo}
-%   \begin{tblr}{colspec={lcc}, hlines}
-%     Item   & Value A & Value B \\
-%     First  & 1.0     & 2.0    \\
-%     Second & 3.0     & 4.0    \\
-%   \end{tblr}
-% \end{table}
-
-% \begin{center}
-%   \begin{longtable}{lcc}
-%     \caption{Minimal longtable demo (not in a float environment).} \label{tab:long} \\
-%     \toprule
-%     Item   & A & B \\ \midrule
-%     \endfirsthead
-%     \toprule
-%     Item   & A & B \\ \midrule
-%     \endhead
-%     Row 1  & 1 & 2 \\
-%     Row 2  & 3 & 4 \\ \bottomrule
-%   \end{longtable}
-% \end{center}
 
 % -----------------------------------------------------------------------------
 % Dissertation structure / roadmap (typical final section of introduction)
