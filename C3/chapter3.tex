@@ -154,17 +154,17 @@ Let $S$ be the set of all possible cell states: $S = \{w, c, t, b, l, r, m\}$ re
 
 We define the binary variable for each state in each cell as:
 \begin{equation}
-    x_{i,j}^s \in \{0, 1\} \quad \forall i,j \in \{1 \dots N\}, \forall s \in S
+    v_{i,j}^s \in \{0, 1\} \quad \forall i,j \in \{1 \dots N\}, \forall s \in S
 \end{equation}
 
 Each cell must have exactly one state at any given time, so a uniqueness constraint is applied:
 \begin{equation}
-    \sum_{s \in S} x_{i,j}^s = 1 \quad \forall i,j \in \{1 \dots N\}
+    \sum_{s \in S} v_{i,j}^s = 1 \quad \forall i,j \in \{1 \dots N\}
 \end{equation}
 
 For convenience when calculating the row/column tallies, we define an auxiliary binary variables $\sigma_{i,j}$ which equals 1 if the cell contains any form of ship segment, and 0 if it is water:
 \begin{equation}
-    \sigma_{i,j} = 1 - x_{i,j}^w
+    \sigma_{i,j} = 1 - v_{i,j}^w
 \end{equation}
 
 \subsection{Tally Constraints}\label{subsec:tally-constraints}
@@ -194,22 +194,107 @@ Ships are forbidden from touching diagonally. Therefore, for any $2 \times 2$ bl
     \sigma_{i+1, j} + \sigma_{i, j+1} \leq 1
 \end{equation}
 
-\textbf{Shape Transition Logic (The "Big-M" equivalent):}
+\textbf{Shape Transition Logic:}
 To ensure that ships form valid linear blocks, the state of one cell strictly dictates the allowed states of its neighbour. For example, if a cell is designated as a Top segment (\textit{t}), the cell immediately below it must be either a Bottom (\textit{b}) or a Middle (\textit{m}). This implication logic is modelled as a linear inequality:
-\begin{equation}
-    x_{i,j}^t \leq v_{i+1, j}^b + x_{i+1, j}^m
+\begin{equation}\label{eq:cell-shape-transition}
+    v_{i,j}^t \leq v_{i+1, j}^m + v_{i+1, j}^b
 \end{equation}
-This identical logic must be explicitly defined and expanded for every possible shape interaction (e.g. Left segments demanding a Right or Middle segment to their right), resulting in a dense constraint matrix.
-
-\textbf{Hint Adherence:}
-Any pre-revealed hints provided in the set $H$ are enforced through bounding the corresponding decision variable to 1, instantly pruning invalid branches from the solver's search tree. If hint $H$ dictates that cell ($i$, $j$) is state $s \subset S$, that variable is fixed:
+The same pattern is applied to the other three end states. For any cell $(i,j)$:
+\begin{align}
+    v_{i,j}^l &\leq v_{i, j+1}^m + v_{i, j+1}^r \\
+    v_{i,j}^r &\leq v_{i, j-1}^m + v_{i, j-1}^l \\
+    v_{i,j}^b &\leq v_{i-1, j}^m + v_{i-1, j}^t
+\end{align}
+At the grid boundary, end pieces facing off-grid are forbidden:
 \begin{equation}
-    x_{i,j}^s = 1
+    v_{i,N}^l = v_{i,1}^r = v_{N,j}^t = v_{1,j}^b = 0 \quad \forall i, j \in \{1, \dots, N\}
+\end{equation}
+
+\subsection{Fleet Inventory and Pattern Matching}\label{subsec:fleet-inventory}
+
+The constraints in Sections \ref{subsec:tally-constraints} and \ref{subsec:geo-and-non-adj-constraints} guarantee that every cell holds a single state and that ship segments form valid lines. They do not, however, guarantee that the resulting fleet matches the specification $F$. Two further types of constraints are required: a global head-count constraint, and a per-length pattern matcher.
+
+\textbf{Total fleet count.}
+Every ship in the fleet has exactly one ``head'' segment: a single-cell ship is a submarine ($c$) and is itself a head; a horizontal ship of length two or more contains exactly one left-end ($l$); a vertical ship of length two or more contains exactly one top-end ($t$). Counting heads therefore counts ships, and the total must equal $|F| = \sum_{L \in F} F_L$, the cardinality of the fleet:
+\begin{equation}\label{eq:cell-fleet-count}
+    \sum_{i=1}^{N} \sum_{j=1}^{N} \left( v_{i,j}^c + v_{i,j}^l + v_{i,j}^t \right) = |F|
+\end{equation}
+
+\textbf{Per-length pattern matching.}
+The total head count alone does not fix how many ships of each length appear. To enforce the per-length counts $F_L$, an auxiliary binary detector $z_{L,o,i,j} \in \{0, 1\}$ is introduced for every length $L$, orientation $o \in \{H, V\}$, and starting cell $(i,j)$ at which a ship of that length and orientation could fit. The detector takes the value $1$ if and only if the corresponding placement is realised by the cell-state variables.
+
+For length $L = 1$ (submarines), the count is direct, with no detector needed:
+\begin{equation}
+    \sum_{i=1}^{N} \sum_{j=1}^{N} v_{i,j}^c = F_1
+\end{equation}
+
+For $L > 1$, define the placement set $P_H(L, i, j) = \{(i, j, l)\} \cup \{(i, j + L - 1, r)\} \cup \{(i, j + k, m) : 1 \leq k \leq L - 2\}$ for the horizontal orientation, and analogously $P_V(L, i, j) = \{(i, j, t)\} \cup \{(i + L - 1, j, b)\} \cup \{(i + k, j, m) : 1 \leq k \leq L - 2\}$ for the vertical orientation. The detector $z_{L,o,i,j}$ must equal the logical AND of the $L$ state variables in $P_o(L, i, j)$. This AND is linearised in the standard way:
+\begin{equation}
+    z_{L,o,i,j} \leq v_{i', j'}^{s'} \quad \forall (i', j', s') \in P_o(L, i, j)
+\end{equation}
+\begin{equation}
+    z_{L,o,i,j} \geq \sum_{(i', j', s') \in P_o(L, i, j)} v_{i', j'}^{s'} \;-\; (L - 1)
+\end{equation}
+The first family forces $z_{L,o,i,j} = 0$ whenever any required piece is absent. The second forces $z_{L,o,i,j} = 1$ when all $L$ required pieces are present.
+
+The per-length count is then expressed as:
+\begin{equation}\label{eq:cell-per-length-count}
+    \sum_{(i,j)} z_{L,H,i,j} + \sum_{(i,j)} z_{L,V,i,j} = F_L \quad \forall L \in F, \; L > 1
+\end{equation}
+where the inner sums range over the valid starting positions for each orientation (i.e. positions for which the ship fits inside the grid).
+
+The cost of this formulation is the introduction of one auxiliary binary detector per (length, orientation, starting position), each with $L + 1$ accompanying linearisation constraints. For an $N \times N$ grid and a fleet containing ship lengths up to $L_{\max}$, this adds $\mathcal{O}(N^2 L_{\max})$ detector variables and $\mathcal{O}(N^2 L_{\max}^2)$ linearisation constraints. This contributes to the dense matrix structure that Chapter~\ref{ch4} identifies as the dominant factor in the Cell Model's solve time at scale.
+
+\subsection{Linearised Degree Constraints}\label{subsec:degree-constraints}
+
+The shape-transition constraints in Section~\ref{subsec:geo-and-non-adj-constraints} forbid invalid neighbour states locally, but they do not directly enforce the degree of each cell (how many orthogonal neighbours must be ship segments). A submarine must have zero ship neighbours, an end piece must have exactly one, and a middle piece must have exactly two. These rules are enforced through Big-M linearised equalities, where the constant attached to the slack term is chosen as the smallest value that renders the constraint inactive when the corresponding indicator is zero.
+
+\textbf{Neighbour Count.}
+For each cell $(i, j)$, let $\mathcal{N}(i, j)$ denote the set of orthogonal in-bounds neighbour coordinates. Reusing the auxiliary $\sigma_{i,j}$ from Section~\ref{subsec:cell-decision-variables}, define:
+\begin{equation}\label{eq:cell-eta-def}
+    \eta_{i,j} = \sum_{(i', j') \in \mathcal{N}(i,j)} \sigma_{i', j'}
+\end{equation}
+$\eta_{i,j}$ is the number of orthogonal neighbours of $(i, j)$ that contain a ship segment, and is bounded above by $|\mathcal{N}(i, j)| \leq 4$.
+
+\textbf{Submarine (Degree 0).}
+A submarine is an isolated single-cell ship. If $v_{i,j}^c = 1$, then $\eta_{i,j}$ must equal $0$:
+\begin{equation}\label{eq:cell-degree-sub}
+    \eta_{i,j} \leq 4 \cdot (1 - v_{i,j}^c)
+\end{equation}
+When $v_{i,j}^c = 1$, the right-hand side collapses to $0$ and forces $\eta_{i,j} = 0$. When $v_{i,j}^c = 0$, the right-hand side becomes $4$ and the constraint is trivially satisfied (since $\eta_{i,j} \leq 4$ is already implied). The constant $4$ is the Big-M value, chosen as the maximum number of orthogonal neighbours any cell can have.
+
+\textbf{End Pieces (Degree 1).}
+End pieces ($l, r, t, b$) lie at the boundary of a multi-cell ship and must have exactly one ship neighbour --- the next segment of their own ship. Let $e_{i,j} = v_{i,j}^l + v_{i,j}^r + v_{i,j}^t + v_{i,j}^b$ be the indicator that $(i, j)$ is an end piece. The exactly-one-neighbour rule is enforced by sandwiching $\eta_{i,j}$:
+\begin{equation}
+    \eta_{i,j} \leq 1 + 3 \cdot (1 - e_{i,j})
+\end{equation}
+\begin{equation}
+    \eta_{i,j} \geq 1 - (1 - e_{i,j})
+\end{equation}
+When $e_{i,j} = 1$, both bounds collapse to $\eta_{i,j} = 1$. When $e_{i,j} = 0$, the upper bound relaxes to $4$ and the lower bound to $0$, deactivating the constraint. The Big-M values $3$ (upper) and $1$ (lower) are the smallest constants that achieve full deactivation given the bound $0 \leq \eta_{i,j} \leq 4$.
+
+\textbf{Middle (Degree 2).}
+A middle piece ($m$) lies strictly inside a ship of length three or more and must have exactly two ship neighbours, one on either side along the ship's axis:
+\begin{equation}
+    \eta_{i,j} \leq 2 + 2 \cdot (1 - v_{i,j}^m)
+\end{equation}
+\begin{equation}
+    \eta_{i,j} \geq 2 - 2 \cdot (1 - v_{i,j}^m)
+\end{equation}
+When $v_{i,j}^m = 1$, both bounds collapse to $\eta_{i,j} = 2$. When $v_{i,j}^m = 0$, the bounds relax to $4$ and $0$ respectively. The Big-M value of $2$ is sufficient on both sides because $\eta_{i,j}$ is bounded between $0$ and $4$ and the target value is $2$.
+
+These six inequalities, applied at every cell of the grid, are the dominant source of constraint density in the Cell Model. Together with the pattern-matching detectors of Section~\ref{subsec:fleet-inventory} they account for the matrix bloat that Chapter~\ref{ch4} identifies as stalling Gurobi's root-node Linear Programming relaxation, even on instances that would otherwise be solved without any branching.
+
+\subsection{Hint Adherence}\label{subsec:cell-hint-adherence}
+
+Any pre-revealed hints provided in the set $H$ are enforced through bounding the corresponding decision variable to 1, instantly pruning invalid branches from the solver's search tree. If hint $H$ dictates that cell ($i$, $j$) is state $s \in S$, that variable is fixed:
+\begin{equation}
+    v_{i,j}^s = 1
 \end{equation}
 
 \section{Mathematical Formulation: The Ship-Based Model}\label{sec:math-formulation-ship}
 
-The ship-based solver works by generating every valid ship placement upfront and ask the solver to pick the correct combination of ships from the selection, instead of working cell-by-cell. The constraint equations are from Meuffels \citep{meuffels-battleship}.
+The ship-based solver works by generating every valid ship placement upfront and asking the solver to pick the correct combination of ships from the selection, instead of working cell-by-cell. The constraint equations are from Meuffels \citep{meuffels-battleship}.
 
 \subsection{Pre-Processing and Candidate Generation}\label{subsec:pre-proc-and-candidate-gen}
 
@@ -240,10 +325,10 @@ Let $\mathcal{C}_k \subseteq \mathcal{C}$ be the subset of all candidates of a s
 
 \textbf{Tally Constraints:}
 Let $a_{i,c}$ represent the number of segments candidate $c$ occupies in row $i$, and $b_{j,c}$ represent the segments in column $j$. The sum of all segments from the chosen candidates must satisfy the tallies:
-\begin{equation}
+\begin{equation}\label{eq:ship-row-tally}
     \sum_{c \in \mathcal{C}} a_{i,c} y_c = R_i \quad \forall i \in \{1 \dots N\}
 \end{equation}
-\begin{equation}
+\begin{equation}\label{eq:ship-col-tally}
     \sum_{c \in \mathcal{C}} b_{j,c} y_c = C_j \quad \forall j \in \{1 \dots N\}
 \end{equation}
 
@@ -251,7 +336,7 @@ Let $a_{i,c}$ represent the number of segments candidate $c$ occupies in row $i$
 This is where the Ship Model finds its speed, as Gurobi deals with sparse matrices with extreme efficiency. Due to the fact ships cannot overlap or touch diagonally/adjacently, many of the candidates are mutually exclusive.
 
 Rather than using complex transition logic like the Cell Model, this model builds a Conflict Graph. This is formulated as a highly sparse Edge-Packing constraint. Let $E$ be the set of all edges representing a conflict between two candidates. Two candidates, $u$ and $v$, conflict if they overlap or touch:
-\begin{equation}
+\begin{equation}\label{eq:ship-edge-packing}
     y_u + y_v \leq 1 \quad \forall (u, v) \in E
 \end{equation}
 
@@ -300,7 +385,7 @@ If a row's required ship segment tally is exactly one ($R_i = 1$), it cannot con
 
 \subsection{Corner Banning}\label{subsec:corner-banning}
 A ``Middle" piece ($M$) strictly requires two adjacent ship pieces on opposite sides (either horizontally or vertically). The four absolute corners of the grid only possess two orthogonal neighbours, making it mathematically impossible for a middle piece to occupy a corner cell.
-\begin{equation}
+\begin{equation}\label{eq:vi-corner-banning}
     v_{1,1}^m = 0, \quad v_{1,N}^m = 0, \quad v_{N,1}^m = 0, \quad v_{N,N}^m = 0
 \end{equation}
 
@@ -314,7 +399,9 @@ To ensure the solvers were mathematically sound and could replicate known academ
 
 Standard CSPLib files are formatted as Prolog strings. A custom Regular Expression (Regex) pipeline was implemented to parse these strings, extracting the grid dimensions, fleet specification, row/column tallies and the provided hints.
 
-By successfully solving the instances provided in the CSPLib dataset, the models were validated against ground-truth configurations before custom data was introduced.
+The CSPLib database publishes puzzle instances but not their reference solutions, so validation in this project is feasibility-based rather than equivalence-based. After solving each instance, the returned configuration was passed through a standalone validator (\verb|BattleshipBoard.is_valid_solution|) that re-checks the row and column tallies, the fleet composition against $F$, and the non-adjacency rule including diagonal touches.
+
+Every CSPLib instance solved by the system was independently confirmed to satisfy these constraints. For well-posed Battleship Solitaire puzzles the published instances are constructed to admit a unique solution, so satisfying every constraint is in practice equivalent to recovering the intended answer. This is, however, an inference about CSPLib's curation rather than a property the validator itself enforces.
 
 \subsection{Procedural Puzzle Generation Algorithm}\label{subsec:procedural-puzzle-gen-algo}
 The evaluation of the models required puzzles of varying dimensions to test against the limits of combinatorial expansion. Battleship Solitaire puzzles cannot simply be randomised, so an algorithm was engineered that builds the puzzles in reverse to ensure they are feasible.
@@ -329,7 +416,7 @@ The evaluation of the models required puzzles of varying dimensions to test agai
 
 \subsection{Controlling Scalability and Heuristic Difficulty}\label{subsec:controlling-scalability-heuristic-diff}
 
-Puzzles were generated at progressively larger dimensions (10x10, 12x12, 15x15, 20x20, 25x25 and 30x30). This was critical for observing the exponential time complexity ($O(2^n)$) inherent to NP-Complete problems, in particular tracking when the Ship Model's memory requirements for candidate generation exceeds system limits.
+Puzzles were generated at progressively larger dimensions (10x10, 15x15, 20x20, 25x25 and 30x30). This was critical for observing the exponential time complexity ($O(2^n)$) inherent to NP-Complete problems, in particular tracking when the Ship Model's memory requirements for candidate generation exceeds system limits.
 
 The difficulty of a Solitaire Battleship instance is largely dictated by the number of starting hints. These hints act as anchors that prune the search tree. The less hints, the more the solver relies on the row/column tallies. The generator produced datasets categorised by hint density:
 \begin{itemize}
@@ -362,15 +449,13 @@ This decoupling ensured that regardless of how the problem was loaded, the Gurob
 \subsection{Mapping ILP Constraints in Gurobi}\label{subsec:mapping-ilp-constraints-gurobi}
 A key implementation challenge was accurately translating the formal mathematical equations into Gurobi's Python API \citep{gurobi2024}.
 
-For the Cell Model, this involved instantiating a multi-dimensional array of binary decision variables using \verb|model.addVars()|, indexing them by row, column and cell state. The transition logic (Big-M constraints) was enforced using localised loops:
+For the Cell Model, this involved instantiating a multi-dimensional array of binary decision variables using \verb|model.addVars()|, indexing them by row, column and cell state. The shape-transition rule of Equation~\eqref{eq:cell-shape-transition} maps directly on to a \verb|gurobipy| constraint:
 \begin{verbatim}
-    # Example mapping of Shape Transition Logic (Equation 3.8)
     model.addConstr(v[r, c, 't'] <= v[r+1, c, 'b'] + v[r+1, c, 'm'])
 \end{verbatim}
 
-The Ship Model implementation heavily relied on Python's pre-processing capabilities. The search space was drastically reduced before Gurobi was invoked by generating a dictionary of valid candidates. The Edge-Based Set Packing conflicts were then mapped efficiently as sparse mutual exclusivity constraints:
+The Ship Model implementation heavily relied on Python's pre-processing capabilities. The search space was drastically reduced before Gurobi was invoked by generating a dictionary of valid candidates. Each Edge-Based Set Packing conflict, defined in Equation~\eqref{eq:ship-edge-packing}, maps to a single sparse mutual-exclusivity constraints:
 \begin{verbatim}
-    # Example mapping of Edge-Based Set Packing (Equation 3.14)
     model.addConstr(y[u] + y[v] <= 1)
 \end{verbatim}
 

@@ -202,16 +202,16 @@
 % Add \dedication{...} and \makededication separately if desired.
 \maketitle{%
   % Abstract: typically 200--300 words. State problem, methods, and main results.
-  Battleship Solitaire is a determinnistic logic puzzle whose decision problem is NP-Complete, making it a useful testbed for advanced combinatorial optimisation techniques.
-  This dissertation compares two Integer Linear Programming (ILP) formulations of the puzzle, originally proposed by Meufells and den Hertog, an d quantifies their behaviour under exponential scaling.
-  A Cell-based model represents the grid as a per-cell state matrix, using shape-transition and adjacency contraints.
+  Battleship Solitaire is a deterministic logic puzzle whose decision problem is NP-Complete, making it a useful testbed for advanced combinatorial optimisation techniques.
+  This dissertation compares two Integer Linear Programming (ILP) formulations of the puzzle, originally proposed by Meuffels and den Hertog, and quantifies their behaviour under exponential scaling.
+  A Cell-based model represents the grid as a per-cell state matrix, using shape-transition and adjacency constraints.
   A Ship-based model uses candidate generation to find valid placements and resolves geometric conflicts with Edge-Based Set Packing. 
   A third variant adds four classes of valid inequalities to the Cell model, to study polyhedral tightening.
   
   To benchmark these formulations, an automated framework was developed in Python and Gurobi. A CSPLib Prolog parser, a procedural puzzle generator that produces feasible instances on grids up to $30 \times 30$, and a thread-safe CustomTkinter interface for interactive solving were engineered.
   Across 150 generated instances and the standard $10 \times 10$ CSPLib dataset, the results show the Ship model dominates, solving $30 \times 30$ zero-hint instances in under two seconds. The Cell model required up to twenty-two seconds for the same configurations. 
-  Branch-and-Bound node counts remained near unity for all models, isolating the Cell-model's bottleneck to matrxi density rather than search-tree depth.
-  A constraint ablation study further showed that valud inequalities are scale-dependent. At 900 cells, they reduce the solve time by approximately two seconds, but introduce overhead at smaller scales.
+  Branch-and-Bound node counts remained near unity for all models, isolating the Cell-model's bottleneck to matrix density rather than search-tree depth.
+  A constraint ablation study further showed that valid inequalities are scale-dependent. At 900 cells, they reduce the solve time by approximately two seconds, but introduce overhead at smaller scales.
   The findings re-frame ILP performance for spatial logic problems as a question of matrix sparsity and root-node relaxation, not search-tree pruning.
 }
 
@@ -229,7 +229,7 @@
 % parties to the work.
 I would like to thank my supervisor Jandson Santos Ribeiro Santos for his academic support throughout the project. Your insight and knowledge helped me stay on the right path with this work.
 
-I would also to thank my close ones who have supported me during this project. The behind-the-scenes help did more than you'll ever know. 
+I would also like to thank my close ones who have supported me during this project. The behind-the-scenes help did more than you'll ever know. 
 
 %\chapter{Declaration}
 % Replace with your declaration (e.g. that the work is your own, and any

@@ -73,7 +73,7 @@ To stress-test the models beyond standard parameters, the procedural generator e
 
 The root cause of the Cell model's exponential scaling is exposed by tracking the Gurobi Branch-and-Bound node count (Figure~\ref{fig:node_complexity}). Surprisingly, the average node count for all models remains near 1.0, even at the 900-cell scale. This proves that Gurobi's internal presolve and root-node relaxations are successfully resolving the puzzles without initiating deep search trees. 
 
-Therefore, the Cell model's 25-second degradation is not caused by combinatorial branching, but rather by the sheer physical density of the Big-M constraint matrix stalling the solver's root-node Linear Programming (LP) evaluations. The sparse Set Packing matrix of the Ship model bypasses this root-node stall entirely.
+Therefore, the Cell model's ~22-second (maximum) degradation is not caused by combinatorial branching, but rather by the sheer physical density of the Big-M constraint matrix stalling the solver's root-node Linear Programming (LP) evaluations. The sparse Set Packing matrix of the Ship model bypasses this root-node stall entirely.
 
 To further illustrate this behaviour at the macroscopic scale, Figure~\ref{fig:scaling_complexity_generated} maps the dynamic dataset's difficulty distribution and cumulative solve times. The scatter plot shows that even at 900 cells, the highest computational spikes are exclusive to the "Medium" and "Hard" configurations, validating the heuristic difficulty model.
 
@@ -117,20 +117,21 @@ To further illustrate this behaviour at the macroscopic scale, Figure~\ref{fig:s
 
 % Impact of valid inequalities - full constraint analysis table into here. Cuts comparison bar chart too. Highlight table state time saved on medium and acknowledge overhead on hard puzzles.
 \subsection{Impact of Valid Inequalities (Constraint Ablation)}\label{subsec:valid-inequalities-impact}
-While Figure~\ref{fig:node_complexity} proves that the valid inequalities successfully prune the search tree, this mathematical efficiency does not perfectly translate to a raw reduction in solve times. 
 
-As shown in the Cuts Comparison chart (Figure~\ref{fig:cuts_comparison}), the impact of the valid inequalities is heavily dependent on the grid scale. On grids up to 400 cells, the Improved Cell model only offers marginal speed increases or performs slightly worse. However, at the 900-cell top-end, the Improved model successfully overtakes the Standard model, saving approximately two seconds of solve time. This exposes a scale-dependent "Overhead vs. Pruning" paradox inherent to Integer Linear Programming.
+While Figure~\ref{fig:node_complexity} proves that the valid inequalities reduce the explored search tree to near-unity node counts, this mathematical efficiency does not translate uniformly into reduced wall-clock time. The relationship between polyhedral tightening and solve time is scale-dependent.
+
+Figure~\ref{fig:cuts_comparison} compares the Standard and Improved Cell Models across grid sizes from 100 to 900 cells on the generated dataset. On the grids up to 400 cells the two variants are within a few hundred milliseconds of each other and the Improved model is, on average, marginally slower. 
+
+The relationship inverts at the 900-cell top end, where the Improved model overtakes the Standard model and saves approximately two seconds of average solve time. This is the scale at which the polyhedral tightening becomes a positive trade-off.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.7\textwidth]{images/generated_dataset/solver_cuts_comparison_2026-04-30_11-44-56.png}
-    \caption{Direct solve time comparison illustrating the solve time difference at different scales by valid inequalities.}
+    \caption{Average solve time on the generated dataset, with and without the four valid inequalities, across grid sizes from 100 to 900 cells. The valid inequalities pay off only at the largest scale, where the matrix density of the baseline becomes the dominant cost.}
     \label{fig:cuts_comparison}
 \end{figure}
 
-The constraint impact analysis (Table~\ref{tab:full_constraint_analysis}) quantifies this speed trade-off. For Medium puzzles, the baseline model (0.1106s) is slower than the full improved model (0.1061s). The valid inequalities successfully intercept bad guesses early, saving time. 
-
-However, on Hard puzzles (0.1432s baseline vs. 0.1472s all constraints), the heuristics are already starved of hints. Forcing Gurobi to process four additional dense equations for every cell introduces matrix bloat (computational overhead) that slightly outweighs the time saved by pruning nodes.
+To attribute this scale-dependent behaviour to specific constraint families, an ablation study was performed on the standard $10 \times 10$ CSPLib dataset. The fully Improved Cell Model was solved with each of the four constraint classes disabled in turn; the average solve times are reported in Table~\ref{tab:full_constraint_analysis}.
 
 \begin{table}[htbp]
   \centering
@@ -151,6 +152,10 @@ However, on Hard puzzles (0.1432s baseline vs. 0.1472s all constraints), the heu
   \end{tabular}
 \end{table}
 
+At the $10 \times 10$ scale every configuration solves in $\sim$0.1--0.15\,s. The differences between rows are on the order of 1--4\,ms, comparable to the run-to-run jitter on the testing hardware, so the table cannot be used to confidently rank individual constraints. The directional pattern is nevertheless consistent with the macroscopic finding in Figure~\ref{fig:cuts_comparison}: at small grid sizes, where the baseline matrix is already tractable, adding redundant constraints introduces overhead comparable to or slightly larger than the time saved by pruning nodes.
+
+The cumulative effect on the $10 \times 10$ cactus plot (Figure~\ref{fig:cactus_plot}) makes this concrete, showing the Improved Cell Model trails the Standard Cell Model end-to-end on the CSPLib dataset rather than overtaking it. The valid inequalities only become a profitable trade at the 900-cell scale, when the matrix density of the baseline becomes the dominant cost.
+
 \section{Discussion}\label{sec:discussion}
 % Critical appraisal: strengths, weaknesses, methodology choices; comparison
 % with prior work. Optional: ablation analysis, sensitivity analysis.
@@ -170,7 +175,7 @@ This indicates that Gurobi's internal presolve algorithms and root-node relaxati
 \subsection{The "Overhead vs. Pruning" Paradox}\label{subsec:overhead-vs-pruning}
 The ablation study quantifying the impact of the valid inequalities (Figure~\ref{fig:cuts_comparison} and Table~\ref{tab:full_constraint_analysis}) revealed the "Overhead vs. Pruning" paradox inherent to discrete optimisation.
 
-For the Medium heuristic difficulty instances, the valid inequalities proved to be excellent additions as they successfully tightened the feasible polytope. They helped prune the dead-end branches from the search tree which in turn decreased the solve time.
+At the 900-cell scale, the valid inequalities tightened the feasible polytope enough to overcome the matrix-bloat cost they introduced, yielding the $\sim$2-second saving observed in Figure~\ref{fig:cuts_comparison}. At the smaller $10 \times 10$ scale the pruning effect was either neutralised by overhead or dominated by it, as evidenced by the cactus plot.
 
 When looking at the Hard difficulty instances, the result is the opposite. The addition of the redundant constraints for every row/column lead to severe matrix bloat. The computational cost of calculating those extra equations during branching, outweighed the time saved by pruning nodes.
 
@@ -192,7 +197,7 @@ While the evaluation framework yielded definitive comparative results, several l
 \subsection{Hardware and Memory Ceilings}\label{subsec:hardware-memory-ceilings}
 The main limitation of the evaluation is the absolute hardware ceiling of the testing environment. Initially, it was hypothesised that the testing hardware (16GB of Unified Memory) would fail on instances larger than 15x15 due to the Ship model's space complexity. 
 
-However, the evaluation successfully scaled to massive 30x30 board configurations, with the Ship model solving in under 2 seconds, while the Cell model experienced severe root-node stalling, taking upwards of 23 seconds for hard instances. 
+However, the evaluation successfully scaled to massive 30x30 board configurations, with the Ship model solving in under 2 seconds, while the Cell model experienced severe root-node stalling, taking a maximum of ~22 seconds for hard instances. 
 
 Therefore, the true hardware limitation lies in grid sizes that are not standard human-playable. But instead, in larger grids (e.g. 50x50) where the Ship's model candidate dictionary would finally exceed the 16GB physical memory limit.
 

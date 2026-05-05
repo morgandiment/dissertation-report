@@ -17,7 +17,7 @@
 % Wider context, domain, motivation. Optional subsections: stakeholders,
 % constraints, assumptions.
 
-This project is focussing on the game known as Battleship Solitaire. There is a common misconception that this game is the same as the 2-player probabilistic game that has been popularised the board game, it is not.
+This project is focussing on the game known as Battleship Solitaire. There is a common misconception that this game is the same as the 2-player probabilistic game popularised as a board game, it is not.
 
 Battleship Solitaire is a deterministic logic puzzle, that players solve using the given hints and tallies provided on the rows and columns. It is a pure application of Discrete Tomography, which is the mathematical study of constructing a geometric object from its projections.
 
@@ -33,13 +33,13 @@ This establishes the critical need for advanced algorithmic techniques, such as 
 % Prior solutions, methods, or systems; identify gaps your work addresses.
 % Optional subsections: by theme, chronology, or type (e.g.\@ systems, methods, theory).
 
-Currently, a few different algorithmic approaches to solving NP-Complete problems. Constraint Programming (CP) being one, and Integer Linear Programming (ILP) being another. 
+Currently, a few different algorithmic approaches exist for solving NP-Complete problems, with Constraint Programming (CP) being one and Integer Linear Programming (ILP) being another. 
 
 CP uses domain reduction to cross out infeasible values for each square in a puzzle. ILP translates the entire board into a matrix, then uses `branch-and-bound` algorithms to mathematically find the optimal layout.
 
 The foundation literature for this project is the ILP formulations proposed by Meuffels \citep{meuffels-battleship}. He demonstrated that it is possible to conceptualise two distinct ways to translate the Battleship Solitaire puzzle into ILP mathematical models. The paper defines the cell-based and ship-based approaches, but lacks extensive testing and scaling of the problems they solve. This project aims to turn these models into a solution written in the modern day, with testing completed that pushes the boundaries of combinatorial algorithms to understand them further.
 
-Literature written by \citet{sevenster2004battleships} also goes into Battleships as a decision problem.
+\citet{sevenster2004battleships} provides the foundational complexity-theoretic treatment, proving that the puzzle is NP-Complete.
 
 This project uses the Gurobi Optimizer \citep{gurobi2024}, which is the industry standard for solving optimisation problems. 
 
