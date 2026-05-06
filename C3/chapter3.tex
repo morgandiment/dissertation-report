@@ -333,7 +333,7 @@ Let $a_{i,c}$ represent the number of segments candidate $c$ occupies in row $i$
 \end{equation}
 
 \subsection{Edge-Based Set Packing (Conflict Constraints)}\label{subsec:edge-based-set-packing}
-This is where the Ship Model finds its speed, as Gurobi deals with sparse matrices with extreme efficiency. Due to the fact ships cannot overlap or touch diagonally/adjacently, many of the candidates are mutually exclusive.
+This is where the Ship Model finds its speed, as Gurobi deals with sparse matrices with extreme efficiency. The formulation is an instance of the Set Packing problem, whose polyhedral structure is well characterised in the integer programming literature~\citep{padberg1973facial,wolsey1998integer}. Because ships cannot overlap or touch diagonally or adjacently, many of the candidates are mutually exclusive.
 
 Rather than using complex transition logic like the Cell Model, this model builds a Conflict Graph. This is formulated as a highly sparse Edge-Packing constraint. Let $E$ be the set of all edges representing a conflict between two candidates. Two candidates, $u$ and $v$, conflict if they overlap or touch:
 \begin{equation}\label{eq:ship-edge-packing}
@@ -393,7 +393,7 @@ A ``Middle" piece ($m$) strictly requires two adjacent ship pieces on opposite s
 
 To evaluate the scalability and computational efficiency of the \gls{ilp} models, a robust dataset was required. A hybrid approach was adopted because publicly available datasets are limited to standard grid sizes. A standard library was utilised for baseline validation, and a custom generator utilised for scalability testing.
 
-\subsection{Standard Academic Dataset (\gls{csplib})}\label{subsec:standard-academic-dataset}
+\subsection[Standard Academic Dataset (CSPLib)]{Standard Academic Dataset (\gls{csplib})}\label{subsec:standard-academic-dataset}
 
 To ensure the solvers were mathematically sound and could replicate known academic benchmarks, the system was engineered to ingest data from the \gls{csplib}, specifically Problem 014 (Solitaire Battleships) \citep{csplib:prob014}.
 
@@ -450,7 +450,7 @@ To ensure compatibility with standard academic datasets, a custom parsing module
 \end{verbatim}
 This decoupling ensured that regardless of how the problem was loaded, the Gurobi solvers received an identical, standardised object.
 
-\subsection{Mapping \gls{ilp} Constraints in Gurobi}\label{subsec:mapping-ilp-constraints-gurobi}
+\subsection{Mapping ILP Constraints in Gurobi}\label{subsec:mapping-ilp-constraints-gurobi}
 A key implementation challenge was accurately translating the formal mathematical equations into Gurobi's Python API \citep{gurobi2024}.
 
 For the Cell Model, this involved instantiating a multi-dimensional array of binary decision variables using \verb|model.addVars()|, indexing them by row, column and cell state. The shape-transition rule of Equation~\eqref{eq:cell-shape-transition} maps directly on to a \verb|gurobipy| constraint:
@@ -487,6 +487,8 @@ The system saves the plots to the device's storage, allowing much faster batch e
 This chapter has detailed the formal mathematical specification and software engineering required to benchmark the different \gls{ilp} approaches to the NP-Complete Solitaire Battleship problem.
 
 A complete decoupled software architecture was engineered to complete the comparative analysis. A procedural forward-generator and custom \gls{csplib} parser were implemented to ensure the solvers could be evaluated against both standard academic baselines and dynamic scaling, zero-hint datasets.
+
+Correctness of both ILP formulations and of the validator was verified through a unit test suite (\verb|tests/| in the repository) covering the parser, the candidate generator's pruning behaviour, and the validator's tally, geometry and fleet-composition branches.
 
 Furthermore, engineering specific to macOS such as asynchronous thread-safe event queueing and headless visualisation was implemented. This was to guarantee a responsive and stable automated testing environment.
 

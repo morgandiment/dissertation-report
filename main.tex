@@ -224,7 +224,7 @@
 %   To my family.%
 % }
 
-\chapter{Acknowledgements}
+\chapter{Acknowledgements}\label{chap:acknowledgements}
 % Replace with your acknowledgements. Here you can also acknowledge any contributions from other
 % parties to the work.
 I would like to thank my supervisor Jandson Santos Ribeiro Santos for his academic support throughout the project. Your insight and knowledge helped me stay on the right path with this work.
@@ -239,7 +239,7 @@ I would also like to thank my close ones who have supported me during this proje
 %This dissertation is the result of my own work. Where reference is made to other work, this is indicated in the text.
 
 %\chapter{Publications, data and code}
-\chapter{Data and Code}
+\chapter{Data and Code}\label{chap:datacode}
 % List publications, if available or maybe planned, and state where data and code produced for this
 % dissertation are available. Note, you usually must submit any sources and similar you have
 % written with your dissertation.
@@ -252,11 +252,11 @@ I would also like to thank my close ones who have supported me during this proje
 %  \item Author. Title. \textit{Journal}, volume, pages, year.~\citep{example-paper}
 %\end{enumerate}
 
-\section{Data}
+\section{Data}\label{sec:data}
 % Datasets produced in this work and where they are available (repository, DOI, or ``on request'').
-The standard datasets utilised for the baseline validation were sourced from the Constraint Satisfaction Problem Library \citep{csplib:prob014}. The specific Solitaire Battleship (Problem 014) data is available at: \url{https://www.csplib.org/Problems/prob014/data/}.
+The standard datasets utilised for the baseline validation were sourced from the Constraint Satisfaction Problem Library meuffels-battleship\citep{csplib:prob014}. The specific Solitaire Battleship (Problem 014) data is available at: \url{https://www.csplib.org/Problems/prob014/data/}.
 
-\section{Code}
+\section{Code}\label{sec:code}
 % Software or code produced in this work and where it is available (repository, DOI, etc.).
 Code produced for this dissertation is available from: \url{https://github.com/morgandiment/Battleship-ILP}.
 
@@ -264,18 +264,27 @@ The LaTeX full report is available at: \url{https://github.com/morgandiment/diss
 
 Gurobi \citep{gurobi2024} was used under the Academic Named User License. More information is available at: \url{https://www.gurobi.com/academics}. 
 
-\chapter{Declaration of AI Usage}
+\chapter{Declaration of AI Usage}\label{chap:ai-declaration}
 
-In accordance with the CM3203 project guidelines, I declare the use of AI assistive technologies during the development of this project. Specifically, Google's Gemini Large Language Model \citep{gemini} was involved in three narrow capacities, none of which involved authoring the project's mathematical, architectural or analytical content:
+In accordance with the CM3203 project guidelines, I declare the use of two AI assistive technologies during this project. Each was used in a supporting capacity. Neither was used to author the project's mathematical, architectural or analytical content.
+
+Google's Gemini Large Language Model \citep{gemini} was involved in three instances:
 \begin{itemize}
   \item \textbf{Diagnostic Assistance:} When the CustomTkinter \gls{gui} began crashing with \verb|NSInternalInconsistencyException| under macOS, Gemini was consulted to identify the underlying cause as a main-thread / background-thread boundary violation in AppKit. The solution (a thread-safe \verb|TextboxRedirector| dispatching through \verb|tkinter.after()|) was then derived independently and is the implementation reproduced in Section~\ref{subsec:platform-challenges-thread-safety}.
-  \item \textbf{Boilerplate Regex Syntax:} The \gls{csplib} Prolog parser uses a single \verb|re.compile(...)| invocation (Section~\ref{subsec:data-structures-parsing}). Gemini provided the initial \verb|\s*\(\s*(\d+)\s*,| escape pattern; the five capture groups, the \verb|re.DOTALL| flag, and the secondary hint-extraction regex were authored manually after testing the pattern against \verb|data/csplib.pl|.
+  \item \textbf{Boilerplate Regex Syntax:} The \gls{csplib} Prolog parser uses a single \verb|re.compile| call (Section~\ref{subsec:data-structures-parsing}). Gemini provided the initial \verb|\s*\(\s*(\d+)\s*,| escape pattern; the five capture groups, the \verb|re.DOTALL| flag, and the secondary hint-extraction regex were authored manually after testing the pattern against \verb|data/csplib.pl|.
   \item \textbf{LaTeX Typesetting of Derived Equations:} Several constraint equations in Sections \ref{sec:math-formulation-cell}--\ref{sec:valid_inequalities} were derived by hand from Meuffels~\citep{meuffels-battleship} and from analysis of the implemented Gurobi constraints, then typeset in LaTeX with Gemini's syntax assistance for the alignment and subscript notation. The mathematical content of every equation is original work. Gemini's contribution was limited to the surrounding markup.
 \end{itemize}
 
-The system architecture (Section~\ref{sec:system-architecture}), the formal mathematical specifications of both \gls{ilp} models (Sections~\ref{sec:math-formulation-cell} and~\ref{sec:math-formulation-ship}), the four valid inequalities (Section~\ref{sec:valid_inequalities}), the procedural puzzle generator (Section~\ref{subsec:procedural-puzzle-gen-algo}), the evaluation methodology (Chapter~\ref{ch4}) and all of the dissertation prose were authored by myself without AI assistance.
+Anthropic Claude~\citep{claude} was used during the report-writing phase as a structured reviewer and consistency checker. Specifically:
+\begin{itemize}
+  \item \textbf{Code--report consistency review:} Claude was given access to the source code for the implementation and report, and was asked to identify inconsistencies between the two. These inconsistencies found were then re-written in the report by myself, or modified in the code to match the behaviour previously reported.
+  \item \textbf{Editorial review:} Claude flagged residual typos, grammatical errors, weak phrasing, and figure caption thinness across the chapters. Each flagged change was reviewed and either accepted in modified form or rejected. Suggestions were not pasted in full.
+  \item \textbf{Build pipeline diagnosis:} The List of Acronyms was failing to render in the compiled PDF. Claude identified the missing \verb|makeglossaries| step in the LaTeX Workshop build to fix it.
+\end{itemize}
 
-To mitigate the risk of hallucinated output, every AI suggestion was reviewed before integration, tested for behavioural correctness against the unit tests in \verb|tests/| (which validate both ILP formulations against feasibility-checked reference instances via \verb|BattleshipBoard.is_valid_solution|), and cross-checked against either the source paper (for mathematical content) or the CSPLib data file (for parser content). No suggestion was incorporated unmodified.
+The system architecture (Section~\ref{sec:system-architecture}), the formal mathematical specifications of both \gls{ilp} models (Sections~\ref{sec:math-formulation-cell} and~\ref{sec:math-formulation-ship}), the four valid inequalities (Section~\ref{sec:valid_inequalities}), the procedural puzzle generator (Section~\ref{subsec:procedural-puzzle-gen-algo}), the evaluation methodology and findings (Chapter~\ref{ch4}), the conclusions and future work (Chapter~\ref{ch5}), and the reflection (Chapter~\ref{ch6}) were authored by myself, with the AI tools used only as described above.
+
+To mitigate the risk of hallucinated output from either tool, every AI suggestion was reviewed before integration, and tested for behavioural correctness against the unit tests in \verb|tests/| (which validate both ILP formulations against feasibility-checked reference instances via \verb|BattleshipBoard.is_valid_solution|), and cross-checked against Meuffels~\citep{meuffels-battleship} (for mathematical content). No suggestion was incorporated unmodified.
 
 \mainmatter
 

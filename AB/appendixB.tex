@@ -20,15 +20,16 @@ For each grid size in the generated dataset (5 sizes $\times$ 8 hint counts $\ti
   \centering
   \caption{Average solve time (seconds) and average branch-and-bound nodes explored, on the 200-instance generated dataset, by grid size and solver. ``Cell (Std)'' denotes the baseline Cell Model; ``Cell (Imp.)'' denotes the Improved variant with all four valid inequalities active.}
   \label{tab:appendix-per-size}
+  \setlength{\tabcolsep}{4pt}
   \begin{tabular}{lcccccc}
     \toprule
-    Grid (cells) & Ship time & Cell (Std) time & Cell (Imp.) time & Ship nodes & Cell (Std) nodes & Cell (Imp.) nodes \\
+    Grid (cells) & Ship time & Cell Std time & Cell Imp time & Ship nodes & Cell Std nodes & Cell Imp nodes \\
     \midrule
-    10$\times$10 (100)  & 0.0103425 & 0.052985 & 0.051805 & 0.53 & 0.57 & 0.57 \\
-    15$\times$15 (225)  & 0.01029825 & 1.286185 & 1.30245 & 1.0 & 2.4 & 1.0 \\
-    20$\times$20 (400)  & 0.209615 & 2.231215 & 2.7381525 & 1.0 & 1.0 & 1.0 \\
-    25$\times$25 (625)  & 0.461325 & 7.0706375 & 9.2635575 & 1.0 & 1.0 & 1.0 \\
-    30$\times$30 (900)  & 0.428335 & 11.361165 & 10.03928 & 1.0 & 1.0 & 1.0 \\
+    $10\times10$ (100)  & 0.0103 & 0.0530 & 0.0518 & 0.53 & 0.57 & 0.57 \\
+    $15\times15$ (225)  & 0.0103 & 1.2862 & 1.3025 & 1.00 & 2.40 & 1.00 \\
+    $20\times20$ (400)  & 0.2096 & 2.2312 & 2.7382 & 1.00 & 1.00 & 1.00 \\
+    $25\times25$ (625)  & 0.4613 & 7.0706 & 9.2636 & 1.00 & 1.00 & 1.00 \\
+    $30\times30$ (900)  & 0.4283 & 11.3612 & 10.0393 & 1.00 & 1.00 & 1.00 \\
     \bottomrule
   \end{tabular}
 \end{fullwidthtable}

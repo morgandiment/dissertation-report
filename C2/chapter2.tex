@@ -27,7 +27,7 @@ From a computational complexity perspective, Battleship Solitaire is formally cl
 
 A guaranteed polynomial-time algorithm for Battleship Solitaire would only be possible if it were mathematically proven that $P = NP$, which remains one of the most profound open problems in theoretical computer science. Because worst-case exponential scaling is unavoidable under current theoretical constraints, computational research instead must focus on the average-case performance.
 
-This establishes the critical need for advanced algorithmic techniques, such as \gls{ilp} and heuristic search trees. These methods do not alter the worst-case exponential boundary, but they intelligently prune the massive search space to find feasible solutions in practical, real-world timeframes.
+This establishes the critical need for advanced algorithmic techniques, such as \gls{ilp} and branch-and-bound search~\citep{wolsey1998integer}. These methods do not alter the worst-case exponential boundary, but they intelligently prune the massive search space to find feasible solutions in practical, real-world timeframes.
 
 \section{Related work}\label{sec:related}
 % Prior solutions, methods, or systems; identify gaps your work addresses.
@@ -35,9 +35,9 @@ This establishes the critical need for advanced algorithmic techniques, such as 
 
 Several algorithmic approaches exist for solving NP-Complete problems, with Constraint Programming (CP) being one and Integer Linear Programming (ILP) being another. 
 
-CP uses domain reduction to cross out infeasible values for each square in a puzzle. \gls{ilp} translates the entire board into a matrix, then uses `branch-and-bound` algorithms to mathematically find the optimal layout.
+CP uses domain reduction to cross out infeasible values for each square in a puzzle. \gls{ilp} translates the entire board into a matrix, then uses branch-and-bound algorithms~\citep{wolsey1998integer} to mathematically find the optimal layout.
 
-The foundation literature for this project is the \gls{ilp} formulations proposed by Meuffels \citep{meuffels-battleship}. He demonstrated that it is possible to conceptualise two distinct ways to translate the Battleship Solitaire puzzle into \gls{ilp} mathematical models. The paper defines the cell-based and ship-based approaches, but lacks extensive testing and scaling of the problems they solve. This project aims to turn these models into a solution written in the modern day, with testing completed that pushes the boundaries of combinatorial algorithms to understand them further.
+The foundation literature for this project is the \gls{ilp} formulations proposed by Meuffels \citep{meuffels-battleship}. He demonstrated that it is possible to conceptualise two distinct ways to translate the Battleship Solitaire puzzle into ILP mathematical models. The paper defines the cell-based and ship-based approaches, but lacks extensive testing and scaling of the problems they solve. This project aims to turn these models into a solution written in the modern day, with testing completed that pushes the boundaries of combinatorial algorithms to understand them further.
 
 \citet{sevenster2004battleships} provides the foundational complexity-theoretic treatment, proving that the puzzle is NP-Complete.
 
@@ -48,4 +48,4 @@ The project also uses \gls{csplib} \citep{csplib:prob014}, which contains many c
 \section{Problem statement}\label{sec:problem}
 % Clear statement of the problem and, if applicable, research question(s).
 
-The aim of this project is to solve the NP-Complete Battleship Solitaire, using \gls{ilp} paradigms, to determine the most computationally efficient \gls{ilp} approach.
+The aim of this project is to solve the NP-Complete Battleship Solitaire, using \gls{ilp} paradigms, to determine the most computationally efficient ILP approach.
