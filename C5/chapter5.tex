@@ -14,14 +14,13 @@
 
 \section{Conclusions}\label{sec:conclusions}
 % Summary of aims, key results, and main takeaways. Optional: list of contributions.
+The project's main aim was to establish the most computationally efficient \gls{ilp} model for solving the NP-Complete Battleship Solitaire problem. This aim was successfully met, accomplishing the formulation, implementation, and evaluation of two distinctly different mathematical models: a dense-matrix Cell model and a sparse-matrix Ship model.
 
-The main aim of this project was to determine the most computationally efficient \gls{ilp} model for solving the NP-Complete Battleship Solitaire problem. This aim was successfully achieved through the formulation, implementation, and evaluation of two distinct mathematical models: a dense-matrix Cell model and a sparse-matrix Ship model.
+All pre-defined secondary objectives were also fully met in the course of this work. The project delivered a solid software architecture, which includes a custom \gls{csplib} parser, a procedural puzzle generator capable of producing instances up to $30 \times 30$ in size, and a thread-safe decoupled \gls{gui} used to present and interact with the solver's outputs.
 
-All secondary objectives were comprehensively met. The project delivered a robust software architecture featuring a custom \gls{csplib} parser, a procedural puzzle generator capable of scaling instances to dimensions up to $30 \times 30$, and a thread-safe, decoupled \gls{gui} to interactively visualise the solver's outputs.
+The evaluation produced definitive, scale-tested results. The pre-processed Edge-Based Set Packing formulation of the Ship-based model demonstrated overwhelming computational dominance. On the largest \num{900}-cell instances existing in the generated dataset, it solved every puzzle in under \SI{2}{\second}, with an average of approximately \SI{0.4}{\second}. In contrast, the Cell-based model based on Big-M shape transition logic suffered severe exponential degradation, requiring a maximum of over \SI{23}{\second} for the same configurations.
 
-The evaluation produced definitive, scale-tested results. The Ship-based model, which abstracted spatial reasoning into a pre-processed Edge-Based Set Packing formulation, demonstrated overwhelming computational dominance. On the largest \num{900}-cell instances in the generated dataset it solved every puzzle in under \SI{2}{\second}, with an average of approximately \SI{0.4}{\second}. In contrast, the Cell-based model, which relied on Big-M shape transition logic, suffered severe exponential degradation, requiring a maximum of over \SI{23}{\second} for the same configurations.
-
-Crucially, the evaluation isolated the root-cause of this degradation. By tracking the branch-and-bound node counts, the research proved that the Cell model's slowness was not caused by deep search-tree branching, but rather by extreme matrix bloat stalling Gurobi's root-node \gls{lp} relaxations. Furthermore, the constraint ablation study successfully quantified the `Overhead vs. Pruning' paradox, demonstrating that the polyhedral tightening via valid inequalities is only profitable at macroscopic scales (in this study, between 625 and 900 cells). 
+Most importantly, the evaluation isolated the reasoning behind this degradation. By tracking the branch-and-bound node counts, the research proved that the Cell model's slowness was not caused by deep search-tree branching, but rather by extreme matrix bloat stalling Gurobi's root-node \gls{lp} relaxations. Furthermore, the constraint ablation study successfully quantified the `Overhead vs. Pruning' paradox, demonstrating that the polyhedral tightening via valid inequalities is only profitable at macroscopic scales (in this study, between 625 and 900 cells). 
 
 Ultimately, this project demonstrates that reframing the mathematical paradigm of a spatial logic puzzle yields vastly superior computational returns compared to micro-optimising a flawed baseline.
 
@@ -43,9 +42,9 @@ A natural extension is to run each (instance, solver) configuration $k$ times, w
 A first repetition would be discarded as a warm-up run, isolating Gurobi's lazy-initialisation cost and the operating system's first-touch caching from the steady-state measurement that Chapter~\ref{ch4} reports. This refinement does not require changes to either ILP formulation, only to the evaluator's outer loop, and is therefore an inexpensive way to increase the statistical strength of the conclusions before any larger structural changes (such as the cross-solver work in Section~\ref{subsec:cross-solver-benchmarking}) are undertaken.
 
 \subsection{A Hybrid ILP Formulation}\label{subsec:hybrid-ilp-formulation}
-The definitive trade-off discovered in this project was time versus space. The Ship model achieves rapid solve times at the cost of exponential memory consumption during the candidate generation process.
+The most significant trade-off encountered in this project was time versus space. The Ship model provides rapid solve times, at the cost of exponential memory consumption during the candidate generation process.
 
-To mitigate this memory ceiling on theoretical grids larger than $50 \times 50$, future iterations could develop a Hybrid \gls{ilp} model. This approach would use Set Packing to efficiently place the small ships while falling back on Cell-based logic exclusively for the larger ships. 
+In future work, a Hybrid \gls{ilp} model could be engineered to mitigate this memory ceiling on theoretical grids larger than $50 \times 50$. This approach would use Set Packing to efficiently place the small ships while falling back on Cell-based logic exclusively for the larger ships. 
 
 This would drastically reduce the size of the pre-generated candidate dictionary, balancing the memory footprint while maintaining the tight \gls{lp} bounds for the most computationally demanding pieces.
 

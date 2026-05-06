@@ -39,7 +39,7 @@ The five fields are extracted by a single compiled regular expression. Whitespac
 
 Hints are then extracted from the fifth capture group with a secondary regular expression \verb|([wcmlrtb])@\[\s*(\d+)\s*,\s*(\d+)\s*\]|. \gls{csplib} uses one-indexed coordinates throughout, which the parser converts to zero-indexed coordinates before constructing the \verb|BattleshipPuzzle| object.
 
-\section{Big-M derivation for the linearised degree constraints}\label{app:bigm}
+\section{Big-M Derivation for the Linearised Degree Constraints}\label{app:bigm}
 
 The Big-M constants $M = 4$ for the submarine bound, $M = 3$ for the end-piece upper bound, $M = 1$ for the end-piece lower bound, and $M = 2$ for the middle-piece bounds in Section~\ref{subsec:degree-constraints} are not arbitrary. Each is the smallest value that fully deactivates the corresponding constraint when its indicator is zero, given the bound $0 \leq \eta_{i,j} \leq 4$.
 
@@ -57,7 +57,7 @@ For both the upper bound $\eta_{i,j} \leq 2 + M(1 - v_{i,j}^m)$ and the lower bo
 
 Choosing the smallest valid $M$ matters: a tighter Big-M produces a tighter linear-programming relaxation, which strengthens the bounds Gurobi computes at the root node and reduces the cuts it has to add downstream.
 
-\section{Candidate generator output for the standard fleet}\label{app:candidate-counts}
+\section{Candidate Generator Output for the Standard Fleet}\label{app:candidate-counts}
 
 The Ship Model's pre-processing routine of Section~\ref{subsec:pre-proc-and-candidate-gen} enumerates every geometrically valid ship placement on an $N \times N$ grid for each fleet class $L \in F$. For the standard \gls{csplib} fleet $F = \{4{:}1, 3{:}2, 2{:}3, 1{:}4\}$ the per-class counts on a $10 \times 10$ grid are:
 
@@ -80,3 +80,27 @@ The Ship Model's pre-processing routine of Section~\ref{subsec:pre-proc-and-cand
 
 The generator's growth rate is $\mathcal{O}(N^2 L_{\max})$ across all fleet classes combined. On the $30 \times 30$ scaled fleet this rises to several thousand candidates, which is the primary source of the Ship Model's memory footprint discussed in Section~\ref{subsec:hardware-memory-ceilings}.
 
+\section{Graphical User Interface}\label{app:gui}
+
+The CustomTkinter front-end (Section~\ref{subsec:core-sys-modules}, layer 3) provides two interaction modes via a tab strip: a Batch Evaluation tab for running the full benchmark pipeline against a Prolog dataset file, and a Single Puzzle Solver tab for interactive construction and solving of individual instances. Both tabs share the thread-safe message-passing infrastructure described in Section~\ref{subsec:platform-challenges-thread-safety}.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.95\linewidth]{images/GUI/batch-tab.png}
+  \caption{Batch Evaluation tab. The user loads a Prolog dataset file (left), selects which solver(s) to run from the drop-down (centre), and presses ``Run Evaluation''. The console pane streams the per-instance comparison table as the evaluator processes each puzzle, with output marshalled from the background solver thread to the main UI thread through the \texttt{TextboxRedirector} class.}
+  \label{fig:gui_batch}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.95\linewidth]{images/GUI/single-puzzle-unsolved.png}
+  \caption{Single Puzzle Solver tab in input mode. The fleet specification, row tallies and column tallies are typed into the bordered input boxes; clicking each grid cell cycles through the seven possible \gls{csplib} states (water, submarine, top, bottom, left, right, middle) for entering hints. The ``Solve'' button dispatches the constructed instance to the chosen solver on a background thread.}
+  \label{fig:gui_single_unsolved}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.95\linewidth]{images/GUI/single-puzzle-solved.png}
+  \caption{Single Puzzle Solver tab after solving. The status line reports the wall-clock solve time and the branch-and-bound node count returned by Gurobi. Cells that were not part of the input hint set are repainted in light grey to show the recovered ship placements, and the original hints retain their input colouring.}
+  \label{fig:gui_single_solved}
+\end{figure}

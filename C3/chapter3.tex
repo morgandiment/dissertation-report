@@ -128,7 +128,7 @@ The architecture follows a layered design that separates concerns across four co
 \begin{enumerate}
     \item \textbf{The Data Ingestion Layer:} This layer is responsible for following the standardised data format. It contains the Regex pipeline that reads the standard Prolog \gls{csplib} files. It also contains the custom puzzle generator used for scalability testing on the models. This layer packages the information on the provided standardised puzzle into a \verb|BattleshipPuzzle| Python object. This ensures that both \gls{ilp} solvers receive identical data structures.
     \item \textbf{The Optimisation Engine:} This layer works by calling \verb|.solve(puzzle)|, which swaps between the Cell model and Ship model without needing to alter the underlying code. The solvers in turn translate the \verb|BattleshipPuzzle| object into matrix equations and feed them into the Gurobi Optimiser \citep{gurobi2024}, which executes the linear algebra and returns the solved matrix to the Python wrapper.
-    \item \textbf{The Presentation Layer:} This layer is built using CustomTkinter, and provides the interactive visual single-run grid and batch-evaluation controls. Gurobi solver executions are run on asynchronous background threads to prevent the \gls{gui} from freezing. A \verb|textboxRedirector| is used to intercept the terminal output and queue it for the main UI using event scheduling.
+    \item \textbf{The Presentation Layer:} This layer is built using CustomTkinter, and provides the interactive visual single-run grid and batch-evaluation controls (Figure~\ref{fig:gui_overview}). Gurobi solver executions are run on asynchronous background threads to prevent the \gls{gui} from freezing. A \verb|textboxRedirector| is used to intercept the terminal output and queue it for the main UI using event scheduling.
     \item \textbf{The Evaluation Layer:} This module automates the generation of statistical evidence. It calculates solver speeds and shows them in comparison to puzzle difficulty (categorised by number of hints). Matplotlib is run headless to prevent macOS thread violations during batch runs, with the results being saved as \verb|.png| files.
 \end{enumerate}
 
@@ -142,6 +142,13 @@ A quick step-by-step summary on how data moves through the system during a singl
     \item \textbf{Optimisation:} Gurobi calculates the optimal candidate and returns the geometric coordinates to Python.
     \item \textbf{Update:} The main thread reads the given coordinates and updates the cell on the \gls{gui} to reveal the solution to the user.
 \end{enumerate}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.85\linewidth]{images/GUI/single-puzzle-solved.png}
+  \caption[CustomTkinter front-end]{The CustomTkinter front-end post-solve. The Single Puzzle Solver tab supports both interactive grid editing (left-click cycles a cell through the seven \gls{csplib} states) and direct paste of a CSPLib Prolog string. Tallies and the fleet specification are entered in their own input boxes; the solver, the solve time, and the explored node count are reported below the grid. The Batch Evaluation tab, accessed via the upper tab strip, drives the headless evaluator across an entire dataset.}
+  \label{fig:gui_overview}
+\end{figure}
 
 \section{Mathematical Formulation: The Cell-Based Model}\label{sec:math-formulation-cell}
 
@@ -212,7 +219,7 @@ At the grid boundary, end pieces facing off-grid are forbidden:
 
 \subsection{Fleet Inventory and Pattern Matching}\label{subsec:fleet-inventory}
 
-The constraints in Sections \ref{subsec:tally-constraints} and \ref{subsec:geo-and-non-adj-constraints} guarantee that every cell holds a single state and that ship segments form valid lines. They do not, however, guarantee that the resulting fleet matches the specification $F$. Two further types of constraints are required: a global head-count constraint, and a per-length pattern matcher.
+The constraints in Sections \ref{subsec:tally-constraints} and \ref{subsec:geo-and-non-adj-constraints} guarantee that every cell holds a single state and that ship segments form valid lines. However they don't guarantee that the resulting fleet matches the specification $F$. Two further types of constraints are required: a global head-count constraint, and a per-length pattern matcher.
 
 \textbf{Total fleet count.}
 Every ship in the fleet has exactly one ``head'' segment: a single-cell ship is a submarine ($c$) and is itself a head; a horizontal ship of length two or more contains exactly one left-end ($l$); a vertical ship of length two or more contains exactly one top-end ($t$). Counting heads therefore counts ships, and the total must equal $|F| = \sum_{L \in F} F_L$, the cardinality of the fleet:
@@ -246,8 +253,7 @@ where the inner sums range over the valid starting positions for each orientatio
 The cost of this formulation is the introduction of one auxiliary binary detector per (length, orientation, starting position), each with $L + 1$ accompanying linearisation constraints. For an $N \times N$ grid and a fleet containing ship lengths up to $L_{\max}$, this adds $\mathcal{O}(N^2 L_{\max})$ detector variables and $\mathcal{O}(N^2 L_{\max}^2)$ linearisation constraints. This contributes to the dense matrix structure that Chapter~\ref{ch4} identifies as the dominant factor in the Cell Model's solve time at scale.
 
 \subsection{Linearised Degree Constraints}\label{subsec:degree-constraints}
-
-The shape-transition constraints in Section~\ref{subsec:geo-and-non-adj-constraints} forbid invalid neighbour states locally, but they do not directly enforce the degree of each cell (how many orthogonal neighbours must be ship segments). A submarine must have zero ship neighbours, an end piece must have exactly one, and a middle piece must have exactly two. These rules are enforced through Big-M linearised equalities, where the constant attached to the slack term is chosen as the smallest value that renders the constraint inactive when the corresponding indicator is zero.
+The constraints described in Section~\ref{subsec:geo-and-non-adj-constraints} prevent the occurrence of invalid neighbour states for the shape transition locally. However, these constraints do not enforce the degree of each cell, i.e., how many orthogonal neighbours must be ship segments; a submarine has to be 0, an end piece needs to be 1, and a middle piece 2. We linearise these equalities with Big-M, choosing the constant attached to the slack term as the smallest value that renders the constraint inactive when the corresponding indicator is zero.
 
 \textbf{Neighbour Count.}
 For each cell $(i, j)$, let $\mathcal{N}(i, j)$ denote the set of orthogonal in-bounds neighbour coordinates. Reusing the auxiliary $\sigma_{i,j}$ from Section~\ref{subsec:cell-decision-variables}, define:
@@ -404,14 +410,15 @@ The \gls{csplib} database publishes puzzle instances but not their reference sol
 Every \gls{csplib} instance solved by the system was independently confirmed to satisfy these constraints. For well-posed Battleship Solitaire puzzles the published instances are constructed to admit a unique solution, so satisfying every constraint is in practice equivalent to recovering the intended answer. This is, however, an inference about \gls{csplib}'s curation rather than a property the validator itself enforces.
 
 \subsection{Procedural Puzzle Generation Algorithm}\label{subsec:procedural-puzzle-gen-algo}
-The evaluation of the models required puzzles of varying dimensions to test against the limits of combinatorial expansion. Battleship Solitaire puzzles cannot simply be randomised, so an algorithm was engineered that builds the puzzles in reverse to ensure they are feasible.
+In order to evaluation the models, puzzles of varying dimensions are needed to push the bounds of combinatorial expansion. Battleship Solitaire puzzles cannot simply be randomised, so an algorithm was engineered that builds the puzzles in reverse to ensure they are feasible.
 
 \begin{enumerate}
-    \item An empty grid of size $N \times N$ is initialised in memory.
-    \item The standard $10 \times 10$ fleet consists of 10 ships. For custom dimensions, the generator scales the fleet density to ensure the board maintains an appropriate constraint-to-variable ratio.
+    \item A blank grid of size $N \times N$ is initialised into memory.
+    \item A standard $10 \times 10$ fleet consists of 10 ships. For custom dimensions, the generator scales the fleet density to ensure the board maintains an appropriate constraint-to-variable ratio.
     \item The algorithm iteratively attempts to place each ship from the fleet onto the grid using a randomised coordinate and orientation. The generator checks the non-adjacency rules and rejects and regenerates coordinates if a placement causes two ships to touch.
     \item Once the fleet is placed, the algorithm calculates the ship segments to get the row and column tallies.
-    \item  Finally, the algorithm randomly selects a predetermined number of cells to act as pre-revealed hints, then outputs the complete puzzle object for the solvers to evaluate.
+    \item A random number of valid placement coordinates are sampled to act as pre-revealed hints.
+    \item The puzzle object is then output for the solvers to evaluate.
 \end{enumerate}
 
 \subsection{Controlling Scalability and Heuristic Difficulty}\label{subsec:controlling-scalability-heuristic-diff}
@@ -464,17 +471,17 @@ The Ship Model implementation heavily relied on Python's pre-processing capabili
 \end{verbatim}
 
 \subsection{Platform Challenges: Thread Safety and Concurrency}\label{subsec:platform-challenges-thread-safety}
-A notable engineering problem was encountered during the development of the CustomTkinter \gls{gui} on macOS.
+One interesting engineering problem faced during the development of the CustomTkinter \gls{gui} on macOS was that, because the complex matrices used to solve the Solitaire Battleship instances are computationally intensive, running the \verb|gurobipy| optimiser on the main application thread caused the interface to freeze. 
 
-Due to the fact that the complex matrices used in solving the Solitaire Battleship instances are computationally intensive, executing the \verb|gurobipy| optimiser on the main application thread caused the interface to freeze. 
-
-The standard solution of running the solver on an asynchronous background thread resulted in fatal system crashes (\verb|NSInternalInconsistencyException|). This occurred because macOS strictly prohibits background threads from directly modifying UI components or terminal outputs.
+The standard solution of running the solver on an asynchronous background thread resulted in fatal system crashes (\verb|NSInternalInconsistencyException|). This occurred because macOS will not allow background threads from directly modifying UI components or terminal outputs.
 
 The solution that worked (identified through troubleshooting with \citet{gemini}) was implementing a thread-safe event queueing system. A \verb|TextboxRedirector| class was engineered to intercept the standard \verb|print()| statements from the background solver and safely schedule them to be rendered by the main thread using the \verb|tkinter.after()| event loop:
 \begin{verbatim}
     def write(self, text):
         self.textbox.after(0, self._insert_text, text)
 \end{verbatim} 
+
+A walk-through of both \gls{gui} tabs with annotated screenshots is provided in Appendix~\ref{app:gui}.
 
 \subsection{Headless Evaluation}\label{subsec:headless-evaluation}
 To facilitate the automated evaluation of hundreds of problems without triggering similar window manager exceptions, the Matplotlib visualisation library was configured to operate in 'headless' mode, with the use of \verb|matplotlib.use('Agg')|.

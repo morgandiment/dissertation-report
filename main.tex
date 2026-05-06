@@ -202,13 +202,13 @@
 % Add \dedication{...} and \makededication separately if desired.
 \maketitle{%
   % Abstract: typically 200--300 words. State problem, methods, and main results.
-  Battleship Solitaire is a deterministic logic puzzle whose decision problem is NP-Complete, making it a useful testbed for advanced combinatorial optimisation techniques.
-  This dissertation compares two Integer Linear Programming (ILP) formulations of the puzzle, originally proposed by Meuffels and den Hertog, and quantifies their behaviour under exponential scaling.
-  A Cell-based model represents the grid as a per-cell state matrix, using shape-transition and adjacency constraints.
-  A Ship-based model uses candidate generation to find valid placements and resolves geometric conflicts with Edge-Based Set Packing. 
+  Battleship Solitaire is a deterministic logic puzzle, with its decision problem being NP-Complete. This makes a suitable testbed for advanced combinatorial optimisation techniques.
+  This dissertation compares two Integer Linear Programming (ILP) puzzle formulations that were originally proposed by Meuffels and den Hertog, and quantifies their behaviour under exponential scaling.
+  A Cell-based model represents the grid as a state matrix per individual cell, using shape-transition and adjacency constraints.
+  A Ship-based model uses candidate generation to find valid ship placements and resolves geometric conflicts with Edge-Based Set Packing. 
   A third variant adds four classes of valid inequalities to the Cell model, to study polyhedral tightening.
   
-  To benchmark these formulations, an automated framework was developed in Python and Gurobi. A \gls{csplib} Prolog parser, a procedural puzzle generator that produces feasible instances on grids up to $30 \times 30$, and a thread-safe CustomTkinter interface for interactive solving were engineered.
+  To benchmark these formulations, an automated framework was developed using Python and Gurobi. A \gls{csplib} Prolog parser, a procedural puzzle generator that produces feasible instances on grids up to $30 \times 30$, and a thread-safe CustomTkinter interface for interactive solving were engineered.
   Across 150 generated instances and the standard $10 \times 10$ \gls{csplib} dataset, the results show the Ship model dominates, solving $30 \times 30$ zero-hint instances in under \SI{2}{\second}. The Cell model required up to \SI{23}{\second} for the same configurations. 
   Branch-and-Bound node counts remained near unity for all models, isolating the Cell-model's bottleneck to matrix density rather than search-tree depth.
   A constraint ablation study further showed that valid inequalities are scale-dependent. At 900 cells, they reduce the solve time by approximately \SI{1.3}{\second}, but introduce overhead at smaller scales.

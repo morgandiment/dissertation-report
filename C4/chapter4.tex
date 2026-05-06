@@ -42,11 +42,11 @@ In order to thoroughly test the boundaries of the models, the evaluation was don
 The empirical evaluation of the \gls{ilp} models yielded definitive results regarding algorithmic efficiency, scalability limits, and the impact of polyhedral tightening via valid inequalities.
 
 \subsection{Cumulative Performance and Difficulty Analysis}\label{subsec:cumulative-performance}
-The standard $10 \times 10$ \gls{csplib} dataset was processed to establish a baseline of solver efficiency across varying heuristic difficulties. As visualised in the scatter plot (Figure~\ref{fig:difficulty_scatter}), the Ship-based model has a computational dominance over the Cell-based model across all instances.
+The standard $10 \times 10$ \gls{csplib} dataset was processed to establish a baseline of solver efficiency across varying heuristic difficulties. As visualised in the scatter plot (Figure~\ref{fig:difficulty_scatter}), the Cell-based model is computationally dominated by the Ship model for all puzzle instances.
 
-Notably, the performance gap widens significantly as the hint density decreases. For "Hard" instances (0-3 hints), the standard Cell model frequently requires over \SI{0.4}{\second} to resolve the dense transition logic. In contrast, the Set Packing geometry of the Ship model resolves the same instances in near-constant time, tightly clustered near the \SI{0.05}{\second} mark regardless of hint density.
+Moreover, this performance gap widens significantly as the amount of given hints decreases. For "Hard" instances (0-3 hints), the dense transition logic causes the standard Cell model to frequently require over \SI{0.4}{\second} to resolve. In contrast, the Ship model resolves the same instances in near-constant time, tightly clustered near the \SI{0.05}{\second} mark regardless of hint density, shown in the cumulative performance Cactus Plot (Figure~\ref{fig:cactus_plot}).
 
-This resilience against combinatorial explosion is further evidenced by the cumulative performance Cactus Plot (Figure~\ref{fig:cactus_plot}). The Ship model maintains a linear, flat trajectory, successfully solving the entire dataset with negligible time variation. Conversely, both the Standard and Improved Cell models exhibit the classic exponential "hockey stick" curve, wherein the final 20\% of computationally hard puzzles cause the branch-and-bound search trees to expand massively, driving up total execution time.
+This resilience to combinatorial explosion stems from the Set Packing geometry of the Ship model. It maintains a linear, flat trajectory, successfully solving the entire dataset with negligible time variation. Conversely, both the Standard and Improved Cell models exhibit the classic exponential "hockey stick" curve, wherein the final 20\% of computationally hard puzzles cause the branch-and-bound search trees to expand massively, driving up total execution time.
 
 \begin{figure}[htbp]
     \centering
@@ -60,7 +60,7 @@ This resilience against combinatorial explosion is further evidenced by the cumu
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
         \includegraphics[width=\textwidth]{images/10x10_dataset/solver_cactus_2026-04-27_14-24-03.png}
-        \caption{Cumulative solve times on the same 303 \gls{csplib} instances, sorted in ascending order per solver. The Ship Model maintains a flat trajectory throughout. Both Cell variants exhibit the characteristic exponential tail on the hardest 20\% of puzzles. The Improved Cell Model trails the Standard variant for the entire dataset, indicating that on $10 \times 10$ instances the polyhedral tightening introduces overhead that the corresponding pruning gain does not recover.}
+        \caption{Cumulative solve times on the same 303 \gls{csplib} instances, sorted in ascending order per solver. The Ship Model maintains a flat trajectory throughout. Both Cell variants exhibit the characteristic exponential tail on the hardest 20\% of puzzles.}
         \label{fig:cactus_plot}
     \end{subfigure}
     \caption{Baseline performance evaluation on the standard $10 \times 10$ \gls{csplib} dataset. (a) Per-instance scatter of solve times. (b) Cumulative cactus plot. The Ship Model's near-constant performance contrasts with the Cell Models' degradation on hard, low-hint instances.}
@@ -75,7 +75,7 @@ The root cause of the Cell model's exponential scaling is exposed by tracking th
 
 Therefore, the Cell model's \SI{23}{\second} maximum-case degradation is not caused by combinatorial branching, but rather by the sheer physical density of the Big-M constraint matrix stalling the solver's root-node \gls{lp} evaluations. The sparse Set Packing matrix of the Ship model bypasses this root-node stall entirely.
 
-To further illustrate this behaviour at the macroscopic scale, Figure~\ref{fig:scaling_complexity_generated} maps the dynamic dataset's difficulty distribution and cumulative solve times. The scatter plot shows that even at 900 cells, the largest spikes in the Cell Model solve time occur in the Medium and Hard categories, with the highest single instance reaching approximately \SI{23.08}{\second} on a Hard $30 \times 30$ puzzle (with 2 hints). Several Easy instances also exceeded \SI{5}{\second}, demonstrating that hint count doesn't directly correlate with difficulty. Which cells are revealed through hints matters as much as how many. A hint that pins down the length-4 Battleship prunes the search tree more than three submarine hints in isolated rows.
+To further illustrate this behaviour at the macroscopic scale, Figure~\ref{fig:scaling_complexity_generated} maps the dynamic dataset's difficulty distribution and cumulative solve times. The scatter plot shows that even at 900 cells, the largest spikes in the Cell Model solve time occur in the Medium and Hard categories, with the highest single instance reaching approximately \SI{23.08}{\second} on a Hard $30 \times 30$ puzzle (with 2 hints). Several Easy instances also exceeded \SI{5}{\second}, demonstrating that hint count doesn't directly correlate with difficulty. Which cells are revealed through hints matters as much as how many. A hint that successfully locates a length-4 Battleship prunes the search tree more than three submarine hints in isolated rows would.
 
 \begin{figure}[htbp]
     \centering
@@ -89,7 +89,7 @@ To further illustrate this behaviour at the macroscopic scale, Figure~\ref{fig:s
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
         \includegraphics[width=\textwidth]{images/generated_dataset/solver_nodes_comparison_2026-05-05_16-00-38.png}
-        \caption{Average branch-and-bound nodes explored per instance per grid size. With one localised exception at 225 cells (where the Standard Cell Model averages roughly 2.4 nodes), all three solvers stay at or below one node per instance. Most puzzles are resolved entirely by Gurobi's presolve and root-node \gls{lp} relaxation. The Cell Model's slowness at scale therefore stems from root-node stalling, not deep search trees.}
+        \caption{Average branch-and-bound nodes explored per instance per grid size. With one localised exception at 225 cells (where the Standard Cell Model averages roughly 2.4 nodes), all three solvers stay at or below one node per instance. Most puzzles are resolved entirely by Gurobi's presolve and root-node \gls{lp} relaxation.}
         \label{fig:node_complexity}
     \end{subfigure}
     \caption{Scaling behaviour and mathematical complexity on the 200-instance generated dataset (grid sizes 10--30, hint counts 0--14). (a) Average solve time per grid size on a logarithmic axis. (b) Average branch-and-bound nodes explored per grid size on a linear axis.}
@@ -101,7 +101,7 @@ To further illustrate this behaviour at the macroscopic scale, Figure~\ref{fig:s
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
         \includegraphics[width=\textwidth]{images/generated_dataset/solver_difficulty_scatter_2026-05-05_16-00-38.png}
-        \caption{Per-instance scatter of Ship vs Cell solve times across all \num{200} generated puzzles. With the dataset balanced to include Easy ($\geq 10$ hints) instances at three density steps (10, 12, 14), the figure now shows that several Easy puzzles also produce non-trivial Cell solve times, undermining the simple ``more hints means easier'' interpretation.}
+        \caption{Per-instance scatter of Ship vs Cell solve times across all \num{200} generated puzzles. With the dataset balanced to include Easy ($\geq 10$ hints) instances at three density steps (10, 12, 14), the figure now shows that several Easy puzzles also produce non-trivial Cell solve times, undermining the ``more hints means easier'' interpretation.}
         \label{fig:difficulty_scatter_generated}
     \end{subfigure}
     \hfill
@@ -166,25 +166,25 @@ The Ship-based model bypasses those issues by abstracting the spatial reasoning 
 The dominance of the Ship model (Figure~\ref{fig:baseline_performance} and Figure~\ref{fig:line_scaling}) conclusively demonstrates that reframing the mathematical paradigm from a localised, dense-matrix state problem, to a global sparse-matrix edge-packing problem, yields considerably higher computational returns than micro-optimising a flawed initial model.
 
 \subsection{The Power of Presolve and Root-Node Relaxation}\label{subsec:power-of-presolve}
-The node complexity analysis (Figure~\ref{fig:node_complexity}) revealed an unexpected phenomenon: all models, including the slow Cell models, frequently solved complex $30 \times 30$ instances while exploring zero or one Branch-and-Bound nodes. 
+The node complexity analysis (Figure~\ref{fig:node_complexity}) showed an interesting result: in all models, including the slower Cell models, large $30 \times 30$ instances are solved quite often while exploring zero or one Branch-and-Bound nodes. 
 
-This indicates that Gurobi's internal presolve algorithms and root-node relaxations were sufficient to mathematically prove the optimal solution without the use of a deep search tree.
+This means that Gurobi's internal presolve and root-node relaxations are enough to mathematically prove the optimal solution without the need of a deep search tree.
 
 \subsection{The "Overhead vs. Pruning" Paradox}\label{subsec:overhead-vs-pruning}
-The ablation study quantifying the impact of the valid inequalities (Figure~\ref{fig:cuts_comparison} and Table~\ref{tab:full_constraint_analysis}) revealed the "Overhead vs. Pruning" paradox inherent to discrete optimisation.
+The ablation study measuring the impact of the valid inequalities (Figure~\ref{fig:cuts_comparison} and Table~\ref{tab:full_constraint_analysis}) revealed the "Overhead vs. Pruning" paradox, a basic trade-off in discrete optimisation.
 
-At the 900-cell scale, the valid inequalities tightened the feasible polytope enough to overcome the matrix-bloat cost they introduced, yielding the $\sim$2-second saving observed in Figure~\ref{fig:cuts_comparison}. At the smaller $10 \times 10$ scale the pruning effect was either neutralised by overhead or dominated by it, as evidenced by the cactus plot.
+At the 900-cell scale, the valid inequalities tightened the feasible polytope enough to overcome the matrix-bloat cost they introduced, yielding the $\sim$2-second saving observed in Figure~\ref{fig:cuts_comparison}. At the smaller $10 \times 10$ scale the pruning effect was either neutralised by the overhead or dominated by it, as evidenced by the cactus plot.
 
-At the smaller $10 \times 10$ scale the picture isn't as clear. The ablation in Table~\ref{tab:full_constraint_analysis} cannot be used to confidently rank individual constraints because the inter-row differences are within timing jitter, but the cumulative cactus plot in Figure~\ref{fig:cactus_plot} confirms that on average the Improved variant trails the Standard variant on this dataset. The picture only inverts at \num{900} cells, where polyhedral tightening dominates the corresponding matrix-bloat overhead by approximately \SI{1.3}{\second}.
+At the smaller $10 \times 10$ scale the picture isn't as clear. The ablation in Table~\ref{tab:full_constraint_analysis} cannot be used to confidently rank individual constraints because the inter-row differences are within timing jitter, but the cumulative cactus plot in Figure~\ref{fig:cactus_plot} confirms that on average the Improved variant trails the Standard variant on this dataset. The picture only inverts at \num{900} cells, where polyhedral tightening dominates the matrix-bloat overhead by approximately \SI{1.3}{\second}.
 
 This paradox highlights a fundamental trade-off in \gls{ilp}. Polyhedral tightening is only beneficial to the solver if the time saved via the search-tree pruning exceeds the computational overhead of the expanded constraint matrix. 
 
 As shown in Figure~\ref{fig:cuts_comparison}, this threshold was only crossed at the 900-cell scale, where the severe matrix density finally made the redundant parity constraints a positive trade-off.
 
 \subsection{Trade-offs and Comparison with Prior Work}\label{subsec:tradeoffs-comparison-prior-work}
-While the underlying constraint equations were heavily adapted from the framework proposed by Meuffels \citep{meuffels-battleship}, this project advances that prior work by quantifying the absolute scaling limits of both models under combinatorial explosion.
+The constraint equations at the core of this implementation were largely based on the framework introduced by Meuffels \citep{meuffels-battleship}. This project builds onto that work by determining the absolute scaling limits of both models under combinatorial explosion.
 
-The evaluation unveiled a strict limitation of the Ship model. Its speed is achieved at the direct expense of spatial complexity. Due to the fact it pre-generates every possible candidate before Gurobi is invoked, memory consumption grows exponentially.  As grids scale towards larger boards, the Candidate Generation phase will eventually lead to a memory overflow. 
+The evaluation unveiled a strict limitation of the Ship model. Its speed is achieved at the expense of spatial complexity, due to the fact it pre-generates every possible candidate before Gurobi is invoked. As grids scale towards even larger boards, the Candidate Generation phase will eventually lead to a memory overflow on the system. 
 
 Compare this to the Cell model, despite it being a lot slower, it has a much smaller static memory footprint. This establishes a definitive time-space trade-off: the Ship model dominates in processing speed, but the Cell model remains fundamentally more memory-efficient.
 
