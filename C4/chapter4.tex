@@ -18,7 +18,7 @@
 % Optional subsections: environment, hyperparameters, evaluation protocol.
 
 \subsection{Hardware and Environment}\label{subsec:hardware-environment}
-All evaluations were executed on a Macbook Air equipped with the Apple M3 processor and 16GB of RAM, running on macOS Sequoia 15.7.4. The underlying ILP solver utilised for all tests was the Gurobi Optimiser (Version 13.0.1) \citep{gurobi2024}, interfaced with the \verb|gurobipy| Python library.
+All evaluations were executed on a Macbook Air equipped with the Apple M3 processor and \SI{16}{\giga\byte} of RAM, running on macOS Sequoia 15.7.4. The underlying \gls{ilp} solver utilised for all tests was the Gurobi Optimiser (Version 13.0.1) \citep{gurobi2024}, interfaced with the \verb|gurobipy| Python library.
 
 \subsection{Evaluation Metrics}\label{subsec:evaluation-metrics}
 Evaluating algorithmic efficiency solely using system time can be susceptible to hardware fluctuations and background operating system processes. To ensure a resilient evaluation, two main metrics were recorded for every puzzle instance:
@@ -30,21 +30,21 @@ Evaluating algorithmic efficiency solely using system time can be susceptible to
 \subsection{Datasets and Test Scenarios}\label{subsec:datasets-test-scenarios}
 In order to thoroughly test the boundaries of the models, the evaluation was done in three main runs:
 \begin{enumerate}
-  \item \textbf{Cumulative and Scaling Performance:} A custom dataset of dynamically generated puzzles (\verb|scalable_puzzles.txt|) ranging from 100 to 900 total cells was used to test how each model scales with exponentially increasing board sizes.
-  \item \textbf{Difficulty and Density Impact:} A standardised dataset of 10x10 puzzles from CSPLib \citep{csplib:prob014} was evaluated to determine how hint density (categorised in to Easy, Medium and Hard) impacts solver efficiency on a fixed grid size.
-  \item \textbf{Constraint Ablation:} To explicitly quantify the impact of the valid inequalities, the Improved Cell Model was subjected to an ablation study on Medium and Hard 10x10 instances, disabling one custom constraint at a time to measure its individual effect on the overall solve time.
+  \item \textbf{Cumulative and Scaling Performance:} A custom dataset of \num{200} dynamically generated puzzles (\verb|scalable_puzzles.txt|) ranging from \num{100} to \num{900} total cells, sampled across eight hint densities (0--14), was used to test how each model scales with both grid size and hint count.
+  \item \textbf{Difficulty and Density Impact:} A standardised dataset of $10 \times 10$ puzzles from \gls{csplib} \citep{csplib:prob014} was evaluated to determine how hint density (categorised in to Easy, Medium and Hard) impacts solver efficiency on a fixed grid size.
+  \item \textbf{Constraint Ablation:} To explicitly quantify the impact of the valid inequalities, the Improved Cell Model was subjected to an ablation study on Medium and Hard $10 \times 10$ instances, disabling one custom constraint at a time to measure its individual effect on the overall solve time.
 \end{enumerate}
 
 \section{Results}\label{sec:results}
 % Main findings: present tables and figures; summarise key outcomes. Optional
 % subsections: by research question, by dataset, or by metric.
 
-The empirical evaluation of the Integer Linear Programming models yielded definitive results regarding algorithmic efficiency, scalability limits, and the impact of polyhedral tightening via valid inequalities.
+The empirical evaluation of the \gls{ilp} models yielded definitive results regarding algorithmic efficiency, scalability limits, and the impact of polyhedral tightening via valid inequalities.
 
 \subsection{Cumulative Performance and Difficulty Analysis}\label{subsec:cumulative-performance}
-The standard 10x10 CSPLib dataset was processed to establish a baseline of solver efficiency across varying heuristic difficulties. As visualised in the scatter plot (Figure~\ref{fig:difficulty_scatter}), the Ship-based model has a computational dominance over the Cell-based model across all instances.
+The standard $10 \times 10$ \gls{csplib} dataset was processed to establish a baseline of solver efficiency across varying heuristic difficulties. As visualised in the scatter plot (Figure~\ref{fig:difficulty_scatter}), the Ship-based model has a computational dominance over the Cell-based model across all instances.
 
-Notably, the performance gap widens significantly as the hint density decreases. For "Hard" instances (0-3 hints), the standard Cell model frequently requires over 0.4 seconds to resolve the dense transition logic. In contrast, the Set Packing geometry of the Ship model resolves the same instances in near-constant time, tightly clustered near the 0.05-second mark regardless of hint density.
+Notably, the performance gap widens significantly as the hint density decreases. For "Hard" instances (0-3 hints), the standard Cell model frequently requires over \SI{0.4}{\second} to resolve the dense transition logic. In contrast, the Set Packing geometry of the Ship model resolves the same instances in near-constant time, tightly clustered near the \SI{0.05}{\second} mark regardless of hint density.
 
 This resilience against combinatorial explosion is further evidenced by the cumulative performance Cactus Plot (Figure~\ref{fig:cactus_plot}). The Ship model maintains a linear, flat trajectory, successfully solving the entire dataset with negligible time variation. Conversely, both the Standard and Improved Cell models exhibit the classic exponential "hockey stick" curve, wherein the final 20\% of computationally hard puzzles cause the branch-and-bound search trees to expand massively, driving up total execution time.
 
@@ -53,46 +53,46 @@ This resilience against combinatorial explosion is further evidenced by the cumu
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
         \includegraphics[width=\textwidth]{images/10x10_dataset/solver_difficulty_scatter_2026-04-27_14-24-03.png}
-        \caption{Performance comparison by hint density.}
+        \caption{Per-instance comparison of Ship and Cell solve times on the 303 \gls{csplib} instances. The diagonal marks equal performance, every point above it is a puzzle on which the Cell model is slower. \gls{csplib} contains no Easy ($\geq 10$ hints) instances, so the chart only shows Medium and Hard.}
         \label{fig:difficulty_scatter}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
         \includegraphics[width=\textwidth]{images/10x10_dataset/solver_cactus_2026-04-27_14-24-03.png}
-        \caption{Cumulative solve times (Cactus Plot).}
+        \caption{Cumulative solve times on the same 303 \gls{csplib} instances, sorted in ascending order per solver. The Ship Model maintains a flat trajectory throughout. Both Cell variants exhibit the characteristic exponential tail on the hardest 20\% of puzzles. The Improved Cell Model trails the Standard variant for the entire dataset, indicating that on $10 \times 10$ instances the polyhedral tightening introduces overhead that the corresponding pruning gain does not recover.}
         \label{fig:cactus_plot}
     \end{subfigure}
-    \caption{Baseline performance evaluation on the 10x10 dataset, demonstrating the Ship Model's resilience against hard, low-hint instances.}
+    \caption{Baseline performance evaluation on the standard $10 \times 10$ \gls{csplib} dataset. (a) Per-instance scatter of solve times. (b) Cumulative cactus plot. The Ship Model's near-constant performance contrasts with the Cell Models' degradation on hard, low-hint instances.}
     \label{fig:baseline_performance}
 \end{figure}
 
 % scaling behaviour and mathematical complexity - scaling line graph and nodes bar chart. side by side or stacked. Point out grid size where std cell model breaks. Show improved model suppresses node spike
 \subsection{Scaling Behaviour and Mathematical Complexity}\label{subsec:scaling-behaviour}
-To stress-test the models beyond standard parameters, the procedural generator evaluated grid sizes scaling from 100 to 900 total cells. Figure~\ref{fig:line_scaling} maps the average solve times on a logarithmic scale. The Ship model remains an order of magnitude faster across all dimensions. However, it is vital to note that while the Ship model solves a 30x30 grid rapidly, its candidate generation phase becomes heavily memory-bound at this scale. Therefore, a physical hardware limitation will be established at larger theoretical scales, despite its mathematical superiority.
+To stress-test the models beyond standard parameters, the procedural generator evaluated grid sizes scaling from 100 to 900 total cells. Figure~\ref{fig:line_scaling} maps the average solve times on a logarithmic scale. The Ship model remains an order of magnitude faster across all dimensions. However, it is vital to note that while the Ship model solves a $30 \times 30$ grid rapidly, its candidate generation phase becomes heavily memory-bound at this scale. Therefore, a physical hardware limitation will be established at larger theoretical scales, despite its mathematical superiority.
 
-The root cause of the Cell model's exponential scaling is exposed by tracking the Gurobi Branch-and-Bound node count (Figure~\ref{fig:node_complexity}). Surprisingly, the average node count for all models remains near 1.0, even at the 900-cell scale. This proves that Gurobi's internal presolve and root-node relaxations are successfully resolving the puzzles without initiating deep search trees. 
+The root cause of the Cell model's exponential scaling is exposed by tracking the Gurobi Branch-and-Bound node count (Figure~\ref{fig:node_complexity}). With one localised exception, the average node count for all models stays at or below 1.0 across every grid size. Many small instances are resolved entirely by Gurobi's presolve before any branching occurs. The exception is the Standard Cell Model at 225 cells, which averages roughly 2.4 nodes per instance. This isolated spike marks the only grid size at which the baseline Cell Model is forced to branch non-trivially before either presolve or the root-node \gls{lp} relaxation closes the gap. By 400 cells the count returns to unity, indicating that at larger scales the Cell Model's slowness is again driven by root-node stalling rather than branching depth.
 
-Therefore, the Cell model's ~22-second (maximum) degradation is not caused by combinatorial branching, but rather by the sheer physical density of the Big-M constraint matrix stalling the solver's root-node Linear Programming (LP) evaluations. The sparse Set Packing matrix of the Ship model bypasses this root-node stall entirely.
+Therefore, the Cell model's \SI{23}{\second} maximum-case degradation is not caused by combinatorial branching, but rather by the sheer physical density of the Big-M constraint matrix stalling the solver's root-node \gls{lp} evaluations. The sparse Set Packing matrix of the Ship model bypasses this root-node stall entirely.
 
-To further illustrate this behaviour at the macroscopic scale, Figure~\ref{fig:scaling_complexity_generated} maps the dynamic dataset's difficulty distribution and cumulative solve times. The scatter plot shows that even at 900 cells, the highest computational spikes are exclusive to the "Medium" and "Hard" configurations, validating the heuristic difficulty model.
+To further illustrate this behaviour at the macroscopic scale, Figure~\ref{fig:scaling_complexity_generated} maps the dynamic dataset's difficulty distribution and cumulative solve times. The scatter plot shows that even at 900 cells, the largest spikes in the Cell Model solve time occur in the Medium and Hard categories, with the highest single instance reaching approximately \SI{23.08}{\second} on a Hard $30 \times 30$ puzzle (with 2 hints). Several Easy instances also exceeded \SI{5}{\second}, demonstrating that hint count doesn't directly correlate with difficulty. Which cells are revealed through hints matters as much as how many. A hint that pins down the length-4 Battleship prunes the search tree more than three submarine hints in isolated rows.
 
 \begin{figure}[htbp]
     \centering
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{images/generated_dataset/solver_line_comparison_2026-04-30_11-44-56.png}
-        \caption{Logarithmic scaling of average solve time.}
+        \includegraphics[width=\textwidth]{images/generated_dataset/solver_line_comparison_2026-05-05_16-00-38.png}
+        \caption{Average solve time per grid size, $\log_{10}$ scale. The Ship Model is roughly an order of magnitude faster than either Cell variant at every size and shows a shallower scaling slope.}
         \label{fig:line_scaling}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{images/generated_dataset/solver_nodes_comparison_2026-04-30_11-44-56.png}
-        \caption{Average Branch-and-Bound nodes explored.}
+        \includegraphics[width=\textwidth]{images/generated_dataset/solver_nodes_comparison_2026-05-05_16-00-38.png}
+        \caption{Average branch-and-bound nodes explored per instance per grid size. With one localised exception at 225 cells (where the Standard Cell Model averages roughly 2.4 nodes), all three solvers stay at or below one node per instance. Most puzzles are resolved entirely by Gurobi's presolve and root-node \gls{lp} relaxation. The Cell Model's slowness at scale therefore stems from root-node stalling, not deep search trees.}
         \label{fig:node_complexity}
     \end{subfigure}
-    \caption{Scalability and mathematical complexity tracking across dynamically generated grids.}
+    \caption{Scaling behaviour and mathematical complexity on the 200-instance generated dataset (grid sizes 10--30, hint counts 0--14). (a) Average solve time per grid size on a logarithmic axis. (b) Average branch-and-bound nodes explored per grid size on a linear axis.}
     \label{fig:scaling_complexity}
 \end{figure}
 
@@ -100,18 +100,18 @@ To further illustrate this behaviour at the macroscopic scale, Figure~\ref{fig:s
     \centering
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{images/generated_dataset/solver_difficulty_scatter_2026-04-30_11-44-56.png}
-        \caption{Performance comparison by hint density.}
+        \includegraphics[width=\textwidth]{images/generated_dataset/solver_difficulty_scatter_2026-05-05_16-00-38.png}
+        \caption{Per-instance scatter of Ship vs Cell solve times across all \num{200} generated puzzles. With the dataset balanced to include Easy ($\geq 10$ hints) instances at three density steps (10, 12, 14), the figure now shows that several Easy puzzles also produce non-trivial Cell solve times, undermining the simple ``more hints means easier'' interpretation.}
         \label{fig:difficulty_scatter_generated}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{images/generated_dataset/solver_cactus_2026-04-30_11-44-56.png}
-        \caption{Cumulative solve times (Cactus Plot).}
+        \includegraphics[width=\textwidth]{images/generated_dataset/solver_cactus_2026-05-05_16-00-38.png}
+        \caption{Cumulative solve time on the \num{200} generated instances, sorted per solver. The Ship Model remains flat throughout. The two Cell variants converge at the very top end, with the Improved variant's trace finishing just below the Standard variant only on the hardest 5\% of puzzles.}
         \label{fig:cactus_plot_generated}
     \end{subfigure}
-    \caption{Performance evaluation on the dynamically generated dataset featuring grids up to 30x30 in size.}
+    \caption{Performance on the 200-instance generated dataset spanning $10 \times 10$ to $30 \times 30$ grids and 0--14 hints. (a) Per-instance scatter coloured by difficulty bracket. (b) Cumulative cactus plot.}
     \label{fig:scaling_complexity_generated}
 \end{figure}
 
@@ -120,22 +120,20 @@ To further illustrate this behaviour at the macroscopic scale, Figure~\ref{fig:s
 
 While Figure~\ref{fig:node_complexity} proves that the valid inequalities reduce the explored search tree to near-unity node counts, this mathematical efficiency does not translate uniformly into reduced wall-clock time. The relationship between polyhedral tightening and solve time is scale-dependent.
 
-Figure~\ref{fig:cuts_comparison} compares the Standard and Improved Cell Models across grid sizes from 100 to 900 cells on the generated dataset. On the grids up to 400 cells the two variants are within a few hundred milliseconds of each other and the Improved model is, on average, marginally slower. 
-
-The relationship inverts at the 900-cell top end, where the Improved model overtakes the Standard model and saves approximately two seconds of average solve time. This is the scale at which the polyhedral tightening becomes a positive trade-off.
+Figure~\ref{fig:cuts_comparison} compares the Standard and Improved Cell Models across grid sizes from 100 to 900 cells on the generated dataset. On grids up to 400 cells the Improved Cell Model is often marginally slower. At 625 cells it is meaningfully slower, taking roughly \SI{2}{\second} more than the Standard variant. Only at the 900-cell top end does the Improved Model overtake the Standard Model, saving approximately \SI{1.3}{\second}. The crossover is therefore sharper and later than a simple ``larger grids benefit from tightening'' story would suggest: the polyhedral tightening introduces overhead that grows with the size of the constraint matrix, and the size at which the pruning benefit overtakes that overhead happens to fall between 625 and 900 cells for this formulation.
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.7\textwidth]{images/generated_dataset/solver_cuts_comparison_2026-04-30_11-44-56.png}
-    \caption{Average solve time on the generated dataset, with and without the four valid inequalities, across grid sizes from 100 to 900 cells. The valid inequalities pay off only at the largest scale, where the matrix density of the baseline becomes the dominant cost.}
+    \includegraphics[width=0.7\textwidth]{images/generated_dataset/solver_cuts_comparison_2026-05-05_16-00-38.png}
+    \caption{Average solve time per grid size on the generated dataset, contrasting the Standard Cell Model (red) with the Improved Cell Model that adds the four valid inequalities of Section~\ref{sec:valid_inequalities} (green). At 100 and 225 cells the variants are tied, at 400 and 625 cells the Improved variant is meaningfully \emph{slower} (additional constraints dominate the pruning gain). At 900 cells the Improved variant overtakes the Standard variant by approximately \SI{1.3}{\second}. The crossover therefore sits between 625 and 900 cells for this formulation and dataset.}
     \label{fig:cuts_comparison}
 \end{figure}
 
-To attribute this scale-dependent behaviour to specific constraint families, an ablation study was performed on the standard $10 \times 10$ CSPLib dataset. The fully Improved Cell Model was solved with each of the four constraint classes disabled in turn; the average solve times are reported in Table~\ref{tab:full_constraint_analysis}.
+To attribute this scale-dependent behaviour to specific constraint families, an ablation study was performed on the standard $10 \times 10$ \gls{csplib} dataset. The fully Improved Cell Model was solved with each of the four constraint classes disabled in turn; the average solve times are reported in Table~\ref{tab:full_constraint_analysis}.
 
 \begin{table}[htbp]
   \centering
-  \caption{Constraint Impact Analysis: Average solve times (seconds) when removing individual redundant constraints from the fully loaded Cell Model. Based on the CSPLib dataset.}
+  \caption{Constraint Impact Analysis: Average solve times (seconds) when removing individual redundant constraints from the fully loaded Cell Model. Based on the \gls{csplib} dataset.}
   \label{tab:full_constraint_analysis}
   \begin{tabular}{lcc}
     \toprule
@@ -154,7 +152,7 @@ To attribute this scale-dependent behaviour to specific constraint families, an 
 
 At the $10 \times 10$ scale every configuration solves in $\sim$0.1--0.15\,s. The differences between rows are on the order of 1--4\,ms, comparable to the run-to-run jitter on the testing hardware, so the table cannot be used to confidently rank individual constraints. The directional pattern is nevertheless consistent with the macroscopic finding in Figure~\ref{fig:cuts_comparison}: at small grid sizes, where the baseline matrix is already tractable, adding redundant constraints introduces overhead comparable to or slightly larger than the time saved by pruning nodes.
 
-The cumulative effect on the $10 \times 10$ cactus plot (Figure~\ref{fig:cactus_plot}) makes this concrete, showing the Improved Cell Model trails the Standard Cell Model end-to-end on the CSPLib dataset rather than overtaking it. The valid inequalities only become a profitable trade at the 900-cell scale, when the matrix density of the baseline becomes the dominant cost.
+The cumulative effect on the $10 \times 10$ cactus plot (Figure~\ref{fig:cactus_plot}) makes this concrete, showing the Improved Cell Model trails the Standard Cell Model end-to-end on the \gls{csplib} dataset rather than overtaking it. The valid inequalities only become a profitable trade at the 900-cell scale, when the matrix density of the baseline becomes the dominant cost.
 
 \section{Discussion}\label{sec:discussion}
 % Critical appraisal: strengths, weaknesses, methodology choices; comparison
@@ -163,12 +161,12 @@ The cumulative effect on the $10 \times 10$ cactus plot (Figure~\ref{fig:cactus_
 \subsection{The Algorithmic Paradigm Shift: Dense vs. Sparse Matrices}\label{subsec:algorithmic-paradigm-shift}
 The extreme difference in performance between the two models stems from how spatial constraints are formulated. The Cell-based model relies on dense Big-M transition logic, meaning that Gurobi has to continually cross-reference adjacent decision variables to enforce valid geometry. When the grid dimensions scale, the density of this constraint matrix explodes combinatorially.
 
-The Ship-based model bypasses those issues by abstracting the spatial reasoning out of the ILP matrix entirely. It leverages Python to pre-calculate the valid fleet geometry (Candidate Generation), the problem is reduced to an Edge-Based Set Packing formulation.
+The Ship-based model bypasses those issues by abstracting the spatial reasoning out of the \gls{ilp} matrix entirely. It leverages Python to pre-calculate the valid fleet geometry (Candidate Generation), the problem is reduced to an Edge-Based Set Packing formulation.
 
 The dominance of the Ship model (Figure~\ref{fig:baseline_performance} and Figure~\ref{fig:line_scaling}) conclusively demonstrates that reframing the mathematical paradigm from a localised, dense-matrix state problem, to a global sparse-matrix edge-packing problem, yields considerably higher computational returns than micro-optimising a flawed initial model.
 
 \subsection{The Power of Presolve and Root-Node Relaxation}\label{subsec:power-of-presolve}
-The node complexity analysis (Figure~\ref{fig:node_complexity}) revealed an unexpected phenomenon: all models, including the slow Cell models, frequently solved complex 30x30 instances while exploring zero or one Branch-and-Bound nodes. 
+The node complexity analysis (Figure~\ref{fig:node_complexity}) revealed an unexpected phenomenon: all models, including the slow Cell models, frequently solved complex $30 \times 30$ instances while exploring zero or one Branch-and-Bound nodes. 
 
 This indicates that Gurobi's internal presolve algorithms and root-node relaxations were sufficient to mathematically prove the optimal solution without the use of a deep search tree.
 
@@ -177,9 +175,9 @@ The ablation study quantifying the impact of the valid inequalities (Figure~\ref
 
 At the 900-cell scale, the valid inequalities tightened the feasible polytope enough to overcome the matrix-bloat cost they introduced, yielding the $\sim$2-second saving observed in Figure~\ref{fig:cuts_comparison}. At the smaller $10 \times 10$ scale the pruning effect was either neutralised by overhead or dominated by it, as evidenced by the cactus plot.
 
-When looking at the Hard difficulty instances, the result is the opposite. The addition of the redundant constraints for every row/column lead to severe matrix bloat. The computational cost of calculating those extra equations during branching, outweighed the time saved by pruning nodes.
+At the smaller $10 \times 10$ scale the picture isn't as clear. The ablation in Table~\ref{tab:full_constraint_analysis} cannot be used to confidently rank individual constraints because the inter-row differences are within timing jitter, but the cumulative cactus plot in Figure~\ref{fig:cactus_plot} confirms that on average the Improved variant trails the Standard variant on this dataset. The picture only inverts at \num{900} cells, where polyhedral tightening dominates the corresponding matrix-bloat overhead by approximately \SI{1.3}{\second}.
 
-This paradox highlights a fundamental trade-off in Integer Linear Programming. Polyhedral tightening is only beneficial to the solver if the time saved via the search-tree pruning exceeds the computational overhead of the expanded constraint matrix. 
+This paradox highlights a fundamental trade-off in \gls{ilp}. Polyhedral tightening is only beneficial to the solver if the time saved via the search-tree pruning exceeds the computational overhead of the expanded constraint matrix. 
 
 As shown in Figure~\ref{fig:cuts_comparison}, this threshold was only crossed at the 900-cell scale, where the severe matrix density finally made the redundant parity constraints a positive trade-off.
 
@@ -195,15 +193,15 @@ Compare this to the Cell model, despite it being a lot slower, it has a much sma
 While the evaluation framework yielded definitive comparative results, several limitations and threats to the validity must be acknowledged regarding the generalisability of these findings.
 
 \subsection{Hardware and Memory Ceilings}\label{subsec:hardware-memory-ceilings}
-The main limitation of the evaluation is the absolute hardware ceiling of the testing environment. Initially, it was hypothesised that the testing hardware (16GB of Unified Memory) would fail on instances larger than 15x15 due to the Ship model's space complexity. 
+The main limitation of the evaluation is the absolute hardware ceiling of the testing environment. Initially, it was hypothesised that the testing hardware (\SI{16}{\giga\byte} of Unified Memory) would fail on instances larger than $15 \times 15$ due to the Ship model's space complexity. 
 
-However, the evaluation successfully scaled to massive 30x30 board configurations, with the Ship model solving in under 2 seconds, while the Cell model experienced severe root-node stalling, taking a maximum of ~22 seconds for hard instances. 
+However, the evaluation successfully scaled to massive $30 \times 30$ board configurations, with the Ship model solving in under \SI{2}{\second}, while the Cell model experienced severe root-node stalling, taking a maximum of \SI{23}{\second} for hard instances. 
 
-Therefore, the true hardware limitation lies in grid sizes that are not standard human-playable. But instead, in larger grids (e.g. 50x50) where the Ship's model candidate dictionary would finally exceed the 16GB physical memory limit.
+Therefore, the true hardware limitation lies in grid sizes that are not standard human-playable. But instead, in larger grids (e.g. $50 \times 50$) where the Ship's model candidate dictionary would finally exceed the \SI{16}{\giga\byte} physical memory limit.
 
-Testing on a High-Performance Computing (HPC) cluster would be required to identify the true mathematical breaking point of the Candidate Generation algorithm.
+Testing on a \gls{hpc} cluster would be required to identify the true mathematical breaking point of the Candidate Generation algorithm.
 
 \subsection{Solver Bias and Algorithmic Portability}\label{subsec:solver-bias}
 A substantial threat to external validity is the reliance on the Gurobi Optimiser. Gurobi is a state-of-the-art commercial solver that utilises highly guarded, proprietary heuristics for its internal presolve, cutting planes, and branch-and-bound node selection.
 
-Because the node count metric (which dictates the mathematical complexity) is tightly coupled to Gurobi's specific proprietary heuristics, the exact scaling curves observed in this evaluation may not be universally portable. Evaluating these ILP formulations using an open-source solver (such as PuLP, CBC or SCIP) might yield vastly different branch-and-bound behaviours, and could potentially alter the exact grid dimension at which the Cell model's performance degrades. Future work should involve a cross-solver benchmarking suite to decouple the mathematical formulation's efficiency from Gurobi's internal optimisations.
+Because the node count metric (which dictates the mathematical complexity) is tightly coupled to Gurobi's specific proprietary heuristics, the exact scaling curves observed in this evaluation may not be universally portable. Evaluating these \gls{ilp} formulations using an open-source solver (such as PuLP, CBC or SCIP) might yield vastly different branch-and-bound behaviours, and could potentially alter the exact grid dimension at which the Cell model's performance degrades. Future work should involve a cross-solver benchmarking suite to decouple the mathematical formulation's efficiency from Gurobi's internal optimisations.

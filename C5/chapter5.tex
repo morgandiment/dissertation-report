@@ -15,32 +15,32 @@
 \section{Conclusions}\label{sec:conclusions}
 % Summary of aims, key results, and main takeaways. Optional: list of contributions.
 
-The main aim of this project was to determine the most computationally efficient Integer Linear Programming (ILP) model for solving the NP-Complete Battleship Solitaire problem. This aim was successfully achieved through the formulation, implementation, and evaluation of two distinct mathematical models: a dense-matrix Cell model and a sparse-matrix Ship model.
+The main aim of this project was to determine the most computationally efficient \gls{ilp} model for solving the NP-Complete Battleship Solitaire problem. This aim was successfully achieved through the formulation, implementation, and evaluation of two distinct mathematical models: a dense-matrix Cell model and a sparse-matrix Ship model.
 
-All secondary objectives were comprehensively met. The project delivered a robust software architecture featuring a custom CSPLib parser, a procedural puzzle generator capable of scaling instances to dimensions up to $30 \times 30$, and a thread-safe, decoupled Graphical User Interface to interactively visualise the solver's outputs.
+All secondary objectives were comprehensively met. The project delivered a robust software architecture featuring a custom \gls{csplib} parser, a procedural puzzle generator capable of scaling instances to dimensions up to $30 \times 30$, and a thread-safe, decoupled \gls{gui} to interactively visualise the solver's outputs.
 
-The evaluation produced definitive, scale-tested results. The Ship-based model, which abstracted spatial reasoning into a pre-processed Edge-Based Set Packing formulation, demonstrated overwhelming computational dominance. It successfully solved massive 900-cell, zero-hint, instances in under two seconds. In contrast, the Cell-based model, which relied on Big-M shape transition logic, suffered severe exponential degradation, requiring a maximum of over \textasciitilde\SI{22}{\second} for the same configurations.
+The evaluation produced definitive, scale-tested results. The Ship-based model, which abstracted spatial reasoning into a pre-processed Edge-Based Set Packing formulation, demonstrated overwhelming computational dominance. On the largest \num{900}-cell instances in the generated dataset it solved every puzzle in under \SI{2}{\second}, with an average of approximately \SI{0.4}{\second}. In contrast, the Cell-based model, which relied on Big-M shape transition logic, suffered severe exponential degradation, requiring a maximum of over \SI{23}{\second} for the same configurations.
 
-Crucially, the evaluation isolated the root-cause of this degradation. By tracking the branch-and-bound node counts, the research proved that the Cell model's slowness was not caused by deep search-tree branching, but rather by extreme matrix bloat stalling Gurobi's root-node Linear Programming (LP) relaxations. Furthermore, the constraint ablation study successfully quantified the `Overhead vs. Pruning' paradox, proving that the polyhedral tightening via valid inequalities is only mathematically profitable when the matrix density reaches macroscopic scales. 
+Crucially, the evaluation isolated the root-cause of this degradation. By tracking the branch-and-bound node counts, the research proved that the Cell model's slowness was not caused by deep search-tree branching, but rather by extreme matrix bloat stalling Gurobi's root-node \gls{lp} relaxations. Furthermore, the constraint ablation study successfully quantified the `Overhead vs. Pruning' paradox, demonstrating that the polyhedral tightening via valid inequalities is only profitable at macroscopic scales (in this study, between 625 and 900 cells). 
 
 Ultimately, this project demonstrates that reframing the mathematical paradigm of a spatial logic puzzle yields vastly superior computational returns compared to micro-optimising a flawed baseline.
 
 \section{Future work}\label{sec:future}
 % Next steps, open questions, and what you would do with more time or resources.
 
-While this project successfully mapped the efficiency of these ILP formulations up to $30 \times 30$ grids, the findings provide a clear starting point for future computational research into Discrete Tomography.
+While this project successfully mapped the efficiency of these \gls{ilp} formulations up to $30 \times 30$ grids, the findings provide a clear starting point for future computational research into Discrete Tomography.
 
 \subsection{Cross-Solver Benchmarking}\label{subsec:cross-solver-benchmarking}
 As identified in the project limitations, the mathematical complexity metrics observed were inherently tied to Gurobi's presolve heuristics. Future work should implement a cross-solver benchmarking suite integrating open-source optimisation engines, such as CBC (Coin-or branch and cut) or SCIP.
 
 Evaluating the formulations across different solver backends would determine whether the Ship model's root-node efficiency is a universal mathematical property of Set Packing, or a byproduct of Gurobi's specific algorithmic bias.
 
-\subsection{A Hybrid ILP Formulation}\label{subsec:hybrid-ilp-formulation}
+\subsection{A Hybrid \gls{ilp} Formulation}\label{subsec:hybrid-ilp-formulation}
 The definitive trade-off discovered in this project was time versus space. The Ship model achieves rapid solve times at the cost of exponential memory consumption during the candidate generation process.
 
-To mitigate this memory ceiling on theoretical grids larger than $50 \times 50$, future iterations could develop a Hybrid ILP model. This approach would use Set Packing to efficiently place the small ships while falling back on Cell-based logic exclusively for the larger ships. 
+To mitigate this memory ceiling on theoretical grids larger than $50 \times 50$, future iterations could develop a Hybrid \gls{ilp} model. This approach would use Set Packing to efficiently place the small ships while falling back on Cell-based logic exclusively for the larger ships. 
 
-This would drastically reduce the size of the pre-generated candidate dictionary, balancing the memory footprint while maintaining the tight LP bounds for the most computationally demanding pieces.
+This would drastically reduce the size of the pre-generated candidate dictionary, balancing the memory footprint while maintaining the tight \gls{lp} bounds for the most computationally demanding pieces.
 
 \subsection{High-Performance Computing (HPC) Stress Testing}\label{high-performance-computing-testing}
-Finally, future work should deploy the Ship model onto a High-Performance Computing (HPC) cluster. Bypassing the 16GB unified memory limit of the current testing hardware would allow researchers to track the absolute space-complexity breaking point of the candidate generation algorithm on vast, non-standard grid dimensions.
+Finally, future work should deploy the Ship model onto a \gls{hpc} cluster. Bypassing the \SI{16}{\giga\byte} unified memory limit of the current testing hardware would allow researchers to track the absolute space-complexity breaking point of the candidate generation algorithm on vast, non-standard grid dimensions.

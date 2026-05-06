@@ -10,10 +10,51 @@
 % \section as in main chapters. Replace with your own supplementary material.
 % =============================================================================
 
-This appendix contains supplementary material: extra tables, derivations, or notation. Replace with your own content.
+This appendix contains the per-grid-size and per-difficulty result tables that underlie the figures in Chapter~\ref{ch4}. The numbers are the same evaluation runs that produced Figures~\ref{fig:line_scaling}, \ref{fig:node_complexity}, and~\ref{fig:cuts_comparison}.
 
-\section{Additional data}\label{app:data}
+\section{Per-grid-size summary on the generated dataset}\label{app:per-size}
 
+For each grid size in the generated dataset (5 sizes $\times$ 8 hint counts $\times$ 5 instances $=$ \num{200} puzzles) the average solve time and the average number of branch-and-bound nodes explored by each model are reported below.
 
-\section{Further details}\label{app:details}
+\begin{fullwidthtable}[h]
+  \centering
+  \caption{Average solve time (seconds) and average branch-and-bound nodes explored, on the 200-instance generated dataset, by grid size and solver. ``Cell (Std)'' denotes the baseline Cell Model; ``Cell (Imp.)'' denotes the Improved variant with all four valid inequalities active.}
+  \label{tab:appendix-per-size}
+  \begin{tabular}{lcccccc}
+    \toprule
+    Grid (cells) & Ship time & Cell (Std) time & Cell (Imp.) time & Ship nodes & Cell (Std) nodes & Cell (Imp.) nodes \\
+    \midrule
+    10$\times$10 (100)  & 0.0103425 & 0.052985 & 0.051805 & 0.53 & 0.57 & 0.57 \\
+    15$\times$15 (225)  & 0.01029825 & 1.286185 & 1.30245 & 1.0 & 2.4 & 1.0 \\
+    20$\times$20 (400)  & 0.209615 & 2.231215 & 2.7381525 & 1.0 & 1.0 & 1.0 \\
+    25$\times$25 (625)  & 0.461325 & 7.0706375 & 9.2635575 & 1.0 & 1.0 & 1.0 \\
+    30$\times$30 (900)  & 0.428335 & 11.361165 & 10.03928 & 1.0 & 1.0 & 1.0 \\
+    \bottomrule
+  \end{tabular}
+\end{fullwidthtable}
+
+The numbers in this table are the per-size averages plotted in Figure~\ref{fig:line_scaling} and Figure~\ref{fig:node_complexity}, made explicit so that future work can compare against them quantitatively rather than read them from the chart axes.
+
+\section{CSPLib instance coverage}\label{app:csplib-coverage}
+
+All 303 instances in the standard \gls{csplib} Problem 014 dataset (\verb|data/csplib.pl|) were processed by all three solver variants. Every instance returned a feasible solution under the validator described in Section~\ref{subsec:standard-academic-dataset}. The split by difficulty bracket (defined in Section~\ref{subsec:controlling-scalability-heuristic-diff}) is:
+
+\begin{table}[h]
+  \centering
+  \caption{Distribution of the 303 \gls{csplib} Problem 014 instances by difficulty bracket. \gls{csplib} contains no Easy instances under the bracketing used in this dissertation; the bracket is included for completeness.}
+  \label{tab:appendix-csplib}
+  \begin{tabular}{lcc}
+    \toprule
+    Difficulty & Hint count & Instances \\
+    \midrule
+    Easy   & $\geq 10$  & 0   \\
+    Medium & 4--9       & 22 \\
+    Hard   & 0--3       & 281 \\
+    \midrule
+    \multicolumn{2}{r}{Total:} & 303 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Of these instances, all were solved successfully (no timeouts, no infeasibility errors) by every solver variant, providing end-to-end evidence that the parser, the data ingestion layer, and both \gls{ilp} formulations operate correctly on standard published puzzles.
 

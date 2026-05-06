@@ -138,7 +138,7 @@
 % -----------------------------------------------------------------------------
 % Optional: use a different acronyms file
 % -----------------------------------------------------------------------------
-%\renewcommand{\qdissertationacronymfile}{my-acronyms.tex}
+% \renewcommand{\qdissertationacronymfile}{my-acronyms.tex}
 
 % -----------------------------------------------------------------------------
 % Useful packages for dissertation writing
@@ -208,10 +208,10 @@
   A Ship-based model uses candidate generation to find valid placements and resolves geometric conflicts with Edge-Based Set Packing. 
   A third variant adds four classes of valid inequalities to the Cell model, to study polyhedral tightening.
   
-  To benchmark these formulations, an automated framework was developed in Python and Gurobi. A CSPLib Prolog parser, a procedural puzzle generator that produces feasible instances on grids up to $30 \times 30$, and a thread-safe CustomTkinter interface for interactive solving were engineered.
-  Across 150 generated instances and the standard $10 \times 10$ CSPLib dataset, the results show the Ship model dominates, solving $30 \times 30$ zero-hint instances in under two seconds. The Cell model required up to twenty-two seconds for the same configurations. 
+  To benchmark these formulations, an automated framework was developed in Python and Gurobi. A \gls{csplib} Prolog parser, a procedural puzzle generator that produces feasible instances on grids up to $30 \times 30$, and a thread-safe CustomTkinter interface for interactive solving were engineered.
+  Across 150 generated instances and the standard $10 \times 10$ \gls{csplib} dataset, the results show the Ship model dominates, solving $30 \times 30$ zero-hint instances in under \SI{2}{\second}. The Cell model required up to \SI{23}{\second} for the same configurations. 
   Branch-and-Bound node counts remained near unity for all models, isolating the Cell-model's bottleneck to matrix density rather than search-tree depth.
-  A constraint ablation study further showed that valid inequalities are scale-dependent. At 900 cells, they reduce the solve time by approximately two seconds, but introduce overhead at smaller scales.
+  A constraint ablation study further showed that valid inequalities are scale-dependent. At 900 cells, they reduce the solve time by approximately \SI{1.3}{\second}, but introduce overhead at smaller scales.
   The findings re-frame ILP performance for spatial logic problems as a question of matrix sparsity and root-node relaxation, not search-tree pruning.
 }
 
@@ -266,18 +266,16 @@ Gurobi \citep{gurobi2024} was used under the Academic Named User License. More i
 
 \chapter{Declaration of AI Usage}
 
-In accordance with the CM3203 project guidelines, I declare the use of AI assistive technologies during the development of this project. Specifically, Google's Gemini Large Language Model \citep{gemini} was utilised as an assistive programming and typesetting tool. Its primary applications included:
+In accordance with the CM3203 project guidelines, I declare the use of AI assistive technologies during the development of this project. Specifically, Google's Gemini Large Language Model \citep{gemini} was involved in three narrow capacities, none of which involved authoring the project's mathematical, architectural or analytical content:
 \begin{itemize}
-  \item \textbf{Troubleshooting Platform Issues:} Assisting in identifying the root cause of the macOS-specific \verb|NSInternalInconsistencyException| thread-safety crashes within the CustomTkinter Graphical User Interface.
-  \item \textbf{Syntax Generation:} Aiding with the creation of boilerplate Regular Expressions (Regex) for the CSPLib parser.
-  \item \textbf{Typesetting:} Formatting manually derived mathematical equations into the correct LaTeX syntax.
+  \item \textbf{Diagnostic Assistance:} When the CustomTkinter \gls{gui} began crashing with \verb|NSInternalInconsistencyException| under macOS, Gemini was consulted to identify the underlying cause as a main-thread / background-thread boundary violation in AppKit. The solution (a thread-safe \verb|TextboxRedirector| dispatching through \verb|tkinter.after()|) was then derived independently and is the implementation reproduced in Section~\ref{subsec:platform-challenges-thread-safety}.
+  \item \textbf{Boilerplate Regex Syntax:} The \gls{csplib} Prolog parser uses a single \verb|re.compile(...)| invocation (Section~\ref{subsec:data-structures-parsing}). Gemini provided the initial \verb|\s*\(\s*(\d+)\s*,| escape pattern; the five capture groups, the \verb|re.DOTALL| flag, and the secondary hint-extraction regex were authored manually after testing the pattern against \verb|data/csplib.pl|.
+  \item \textbf{LaTeX Typesetting of Derived Equations:} Several constraint equations in Sections \ref{sec:math-formulation-cell}--\ref{sec:valid_inequalities} were derived by hand from Meuffels~\citep{meuffels-battleship} and from analysis of the implemented Gurobi constraints, then typeset in LaTeX with Gemini's syntax assistance for the alignment and subscript notation. The mathematical content of every equation is original work. Gemini's contribution was limited to the surrounding markup.
 \end{itemize}
 
-The use of this tool was highly appropriate for the project. It functioned as an advanced, interactive reference manual, which accelerated debugging and formatting tasks. 
+The system architecture (Section~\ref{sec:system-architecture}), the formal mathematical specifications of both \gls{ilp} models (Sections~\ref{sec:math-formulation-cell} and~\ref{sec:math-formulation-ship}), the four valid inequalities (Section~\ref{sec:valid_inequalities}), the procedural puzzle generator (Section~\ref{subsec:procedural-puzzle-gen-algo}), the evaluation methodology (Chapter~\ref{ch4}) and all of the dissertation prose were authored by myself without AI assistance.
 
-The core intellectual property of this project, such as the system architecture, ILP constraint definitions and experiment methodology, was entirely authored by myself.
-
-To mitigate the inherent risk of AI use and the hallucinations it can have, all AI-generated suggestions were critically reviewed, manually integrated and tested fully to ensure mathematical and programmatic validity.
+To mitigate the risk of hallucinated output, every AI suggestion was reviewed before integration, tested for behavioural correctness against the unit tests in \verb|tests/| (which validate both ILP formulations against feasibility-checked reference instances via \verb|BattleshipBoard.is_valid_solution|), and cross-checked against either the source paper (for mathematical content) or the CSPLib data file (for parser content). No suggestion was incorporated unmodified.
 
 \mainmatter
 
