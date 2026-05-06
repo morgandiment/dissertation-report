@@ -23,13 +23,13 @@
 
 \section{Motivation and Context}\label{sec:motivation}
 
-This dissertation focusses on the game of Battleship Solitaire, not to be confused with the more commonly known two-player Battleship game. The solitaire version is a deterministic, logic-based puzzle game played by a single person. The aim is to reconstruct a solution on the grid using the given row/column tallies, and individual cell hints.
+This dissertation focusses on the Battleship Solitaire game, not to be confused with the more commonly known two-player Battleship game. The solitaire version is a deterministic, logic-based puzzle game played by a single person. The aim is to reconstruct a feasible solution on the grid using the given row/column tallies, and individual cell hints.
 
 This is an NP-complete problem, which is the main motivation factor behind this project. As the grid size increases or the number of hints provided decreases, the search space explodes combinatorially.
 
 Because it is NP-complete, brute-force guessing is mathematically infeasible for large boards. Therefore, the problem serves as ideal testbed for advanced optimisation techniques, such as \gls{ilp}, combined with modern-day constraint satisfaction solvers.
 
-Existing literature proposes multiple ways to translate the rules of Solitaire Battleship into linear algebra. One method uses modelling based on the cells, one models based on the ships. The comparison of these sets the stage for this project. 
+Existing literature proposes multiple ways to translate the rules of Solitaire Battleship into linear algebra. One method uses modelling based on the cells, one models based on the ships. The comparison of these is the base of this project. 
 
 % \newthought{This template illustrates} the structure and style of a dissertation using the Qyber dissertation class. As in a real introduction, you would state the problem domain, why it matters, and how your work fits. Acronyms use the long-short style: first use gives the full form (e.g.\@ \gls{uk}); later use \acrshort{api} or \acrlong{api} when you need only short or long.
 
@@ -64,10 +64,10 @@ To achieve this aim successfully, the project will have the following objectives
 This dissertation presents a comprehensive algorithmic analysis of \gls{ilp} applied to Battleship Solitaire, an NP-Complete problem. The main contributions of this research are:
 
 \begin{itemize}
-  \item \textbf{Automated Evaluation Pipeline and Generator:} The development of a robust Python framework capable of parsing standard \gls{csplib} Prolog datasets, alongside a dynamic puzzle generator designed to create mathematically valid instances up to $30 \times 30$ in size for scalability analysis.
+  \item \textbf{Automated Evaluation Pipeline and Generator:} The development of a Python framework capable of parsing standard \gls{csplib} Prolog datasets, alongside a dynamic puzzle generator designed to create mathematically valid instances up to $30 \times 30$ in size for scalability analysis.
   \item \textbf{Comparative ILP Formulations:} The formal mathematical specification and Gurobi implementation of two distinct solver paradigms: a Cell-based model utilizing Big-M boundary constraints, and a Ship-based model employing candidate generation and Edge-Based Set Packing.
-  \item \textbf{Constraint Impact Analysis and Tuning:} A Constraint Impact Analysis revealed the 'Overhead vs. Pruning' trade-off, demonstrating that while explicit tally logic reduced solve times on hard instances by pruning dead-end search branches, redundant parity constraints introduced matrix bloat affected performance in certain conditions.
-  \item \textbf{Scalability and Performance Discovery:} Conclusive evidence demonstrating that the Ship-based Set Packing formulation strictly dominates the Cell-based approach. The Ship model maintains an immense speed advantage, efficiently solving $30 \times 30$ zero-hint instances in under \SI{2}{\second}, where the Cell model severely weakens, taking an average of \textasciitilde\SI{11}{\second}.
+  \item \textbf{Constraint Impact Analysis and Tuning:} A Constraint Impact Analysis revealed the 'Overhead vs. Pruning' trade-off, demonstrating that there is a scale-dependent crossover at which the redundant valid inequalities transition from a net cost to a net benefit on the solve time, which is between 625 and 900 cells in this formulation.
+  \item \textbf{Scalability and Performance Discovery:} Conclusive evidence demonstrating that the Ship-based Set Packing formulation outperforms the Cell-based approach across all tested configurations. The Ship model maintains an immense speed advantage, efficiently solving $30 \times 30$ zero-hint instances in under \SI{2}{\second}, where the Cell model severely weakens, taking an average of \textasciitilde\SI{11}{\second}.
 \end{itemize}
 
 % -----------------------------------------------------------------------------
@@ -84,11 +84,11 @@ The remainder of this dissertation is organised as follows.
 
 \textbf{Chapter~\ref{ch3}} presents the methodology, design and implementation. It formalises the puzzle, describes the layered software architecture, and gives the full mathematical specifications of the Cell-Based Model, the Ship-Based Model and the four valid inequalities of the Improved Cell Model. The chapter closes with the dataset construction strategy and the implementation details of the Gurobi mapping, the macOS thread-safety solution, and the headless evaluation pipeline.
 
-\textbf{Chapter~\ref{ch4}} reports the evaluation. It defines the metrics, describes the three experimental scenarios, and presents the results across the standard $10 \times 10$ \gls{csplib} dataset and the \num{200}-instance generated dataset spanning grids up to $30 \times 30$. The discussion analyses dense-versus-sparse matrix structure, the role of presolve and root-node relaxation, and the scale-dependent ``Overhead vs. Pruning'' paradox. The chapter ends with a discussion of limitations and threats to validity.
+\textbf{Chapter~\ref{ch4}} reports the evaluation. It defines the metrics, describes the three experimental scenarios, and presents the results across the standard $10 \times 10$ \gls{csplib} dataset and the \num{200}-instance generated dataset spanning grids up to $30 \times 30$. The discussion analyses dense-versus-sparse matrix structure, the role of presolve and root-node relaxation, and the scale-dependent ``Overhead vs. Pruning'' paradox. The chapter ends with a discussion of limitations and the threats to validity.
 
 \textbf{Chapter~\ref{ch5}} draws the conclusions, summarises the contributions, and outlines three avenues of future work: cross-solver benchmarking, a hybrid ILP formulation, and high-performance-computing stress testing.
 
-\textbf{Chapter~\ref{ch6}} reflects on the learning gained from the project and identifies transferable habits for future practice.
+\textbf{Chapter~\ref{ch6}} reflects on the lessons learned during the project and identifies habits for future practice.
 
 The appendices contain supplementary material and additional results: Appendix~\ref{app:supp} provides the parser pattern, the Big-M derivation, and the candidate-generator output. Appendix~\ref{app:results} provides per-grid-size summary tables and the CSPLib coverage breakdown.
 

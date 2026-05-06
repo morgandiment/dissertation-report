@@ -372,7 +372,7 @@ Every horizontal ship of length two or greater must have exactly one left-end pi
 \end{equation}
 
 \subsection{Line-Specific Parity}\label{subsec:line-specific-parity}
-Because ships cannot bend, a horizontal ship must be contained entirely within a single row. This allows the global parity logic to be scaled down to individual rows and columns, severely restricting the solver's branching options within localized areas.
+Because ships cannot bend, a horizontal ship must be contained entirely within a single row. This allows the global parity logic to be scaled down to individual rows and columns, restricting the solver's branching options to localised areas.
 \begin{equation}
     \sum_{j=1}^{N} v_{i,j}^l = \sum_{j=1}^{N} v_{i,j}^r \quad \forall i \in \{1, \dots, N\}
 \end{equation}
@@ -429,7 +429,7 @@ The \gls{csplib} dataset, in comparison, contains no Easy instances at all. Its 
 
 The progressively larger puzzle dimensions were critical for observing the exponential time complexity ($O(2^n)$) inherent to NP-Complete problems, in particular tracking when the Ship Model's memory requirements for candidate generation exceeds system limits.
 
-The difficulty of a Solitaire Battleship instance is largely dictated by the number of starting hints. These hints act as anchors that prune the search tree. The less hints, the more the solver relies on the row/column tallies. The generator produced datasets categorised by hint density:
+The difficulty of a Solitaire Battleship instance is largely dictated by the number of starting hints, as they act as anchors that prune the search tree. The less hints, the more the solver relies on the row/column tallies. The generator produced datasets categorised by hint density:
 \begin{itemize}
     \item \textbf{Easy:} 10+ hints.
     \item \textbf{Medium:} 4--9 hints.

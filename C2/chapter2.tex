@@ -37,13 +37,13 @@ Several algorithmic approaches exist for solving NP-Complete problems, with Cons
 
 CP uses domain reduction to cross out infeasible values for each square in a puzzle. \gls{ilp} translates the entire board into a matrix, then uses branch-and-bound algorithms~\citep{wolsey1998integer} to mathematically find the optimal layout.
 
-The foundation literature for this project is the \gls{ilp} formulations proposed by Meuffels \citep{meuffels-battleship}. He demonstrated that it is possible to conceptualise two distinct ways to translate the Battleship Solitaire puzzle into ILP mathematical models. The paper defines the cell-based and ship-based approaches, but lacks extensive testing and scaling of the problems they solve. This project aims to turn these models into a solution written in the modern day, with testing completed that pushes the boundaries of combinatorial algorithms to understand them further.
+The foundation literature for this project is the \gls{ilp} formulations proposed by Meuffels \citep{meuffels-battleship}, with \citet{sevenster2004battleships} proving that the puzzle is NP-Complete. Meuffels demonstrated that it is possible to conceptualise two distinct ways to translate the Battleship Solitaire puzzle into ILP mathematical models. The paper defines the cell-based and ship-based approaches, but lacks extensive testing and scaling of the problems they solve. This project aims to turn these models into a solution written in the modern day, with testing completed that pushes the boundaries of combinatorial algorithms to understand them further.
 
-\citet{sevenster2004battleships} provides the foundational complexity-theoretic treatment, proving that the puzzle is NP-Complete.
+Different ILP and CP formulations have been studied to great extents on spatial logic puzzles. For example, Sudoku has both cell-based and exact-cover formulations \citep{sudoku-ilp}. The Set Packing structure is also well-studied, with a rich polyhedral theory (\citet{padberg1973facial}, \citet{wolsey1998integer}). The conflict-graph encoding used in the Ship model is a direct application. The cell-vs-aggregate dichotomy explored in this dissertation recurs across literature, but to the author's knowledge no prior work has scaled both formulations of Battleship Solitaire to the $30 \times 30$ scale.
 
 This project uses the Gurobi Optimizer \citep{gurobi2024}, which is the industry standard for solving optimisation problems. 
 
-The project also uses \gls{csplib} \citep{csplib:prob014}, which contains many constraint problem datasets. Allowing the solver to read the format provided by \gls{csplib} means the research is reproducible.
+The project also uses \gls{csplib} \citep{csplib:prob014}, which contains many constraint problem datasets. Allowing the solver to read the format provided by \gls{csplib} benefits reproducibility.
 
 \section{Problem statement}\label{sec:problem}
 % Clear statement of the problem and, if applicable, research question(s).
